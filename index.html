@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-		<title>Playing improv ...with Python?</title>
+		<title>Convergence in vector space</title>
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.1.0/dist/reset.css">
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.1.0/dist/reveal.css">
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.1.0/dist/theme/simple.css" id="theme">
@@ -17,431 +17,47 @@
 
             <section class="heading-only" style="padding-top:5%">
                 <h1 style="font-size:2.5em;">
-                    Playing improv<br>
-                    ...with Python?
+                    Convergence<br>
+                    in vector space
                 </h1>
 
                 <h2 style="font-size:1.5em;">
-                    <a target="_blank" href="https://pamelafox.github.io/improv-with-python/">
-                        pamelafox.github.io/improv-with-python/
+                    <a target="_blank" href="https://pamelafox.github.io/convergence-with-vectors/">
+                        pamelafox.github.io/convergence-with-vectors/
                     </a>
                 </h2>
 
                 <div style="margin-top:40px;">
-                    Pamela Fox, Python Cloud Advocate at Microsoft<br>
-                    <a target="_blank" href="https://www.pamelafox.org/">pamelafox.org</a><br>
-                    <a target="_blank" href="https://twitter.com/pamelafox">🐦 @pamelafox</a><br>
-                    <a target="_blank" href="https://fosstodon.org/@pamelafox">🐘 @pamelafox@fosstodon.org</a>
+                    Pamela Fox<br>
+                    <a target="_blank" href="https://www.pamelafox.org/">pamelafox.org</a>
                 </div>
-                <div class="no-print" style="text-align: left; margin-top: 100px; font-size: 70%; display:none;">
-                    Tips for navigating the slides:
-                    <ul>
-                        <li>Press O or Escape for overview mode.</li>
-                        <li>Visit <a href="?print-pdf" target="_blank">this link</a> for a nice printable version</li>
-                        <li>Press the copy icon on the upper right of code blocks to copy the code</li>
-                    </ul>
-                </div>
-
-                <aside class="speaker-notes">
-                </aside>
-            </section>
-
-            <section class="heading-only">
-
-                <h2>Discovering improv
-                    <br>
-                    🎭
-                </h2>
-
-
-                <!-- add some emojis -->
-
             </section>
 
             <section>
-                <h3>My first improv?</h3>
+                <h3>Let's play Convergence</h3>
 
-                <img src="slides_assets/yesand_blogpost.png" alt="screenshot of a blog post about yes,and concept" style="border:1px solid grey; width:600px;">
-                <br>
-                <a class="smaller" href="https://blog.pamelafox.org/2015/04/towards-more-yes-ands-and-less-buts.html" target="_blank">
-                    Blog post: Towards more "yes, ands" and less "buts"
-                </a>
+                <ol>
+                    <li>Everyone stands in a circle.
+                    <li>Two people stand in the center facing each other.
+                    <li>Everyone counts down, "3..2..1"
+                    <li>The two people both yell a word at the same time, like "fire" and "whale".
+                    <li>They return to the circle, and everyone thinks:
+                        "What single word is at the intersection of those two words?"
+                    <li>Two new people enter the circle and yell their words together, like "blubber" and "engine".
+                    <li>If they say the same word, everyone wins! If not, the game continues.
+                    <li>Play multiple rounds until you've had your fill.
+                </ol>
             </section>
 
             <section>
-                <h3>Reading about Improv</h3>
-
-                <img src="slides_assets/impro_book_cover.jpg" alt="Cover of Impro book" style="float:right; width:250px;">
-                <p>
-                    <a href="https://www.goodreads.com/book/show/19244102-impro" target="_blank">
-                        Impro: Improvisation and the Theatre
-                    </a><br>
-                    By Keith Johnstone
-                </p>
-                <br><br>
-
-                <p>My GoodReads rating from 2015:</p>
-                <img src="slides_assets/impro_book_goodreads.png" alt="My GoodReads rating of Impro from 2015" style="border:1px solid grey; width:600px;">
-            </section>
-
-            <section>
-                <h3>So Many Improv Classes</h3>
-                <style>
-                    .flex-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px; /* Adjust the gap between items as needed */
-}
-
-.flex-item {
-    flex: 1 1 calc(50% - 10px); /* 50% width minus the gap */
-    box-sizing: border-box;
-    font-size: 0.7em;
-}
-.flex-item img {
-    border: 1px solid #ccc;
-}
-                </style>
-
-                <div class="flex-container">
-                    <div class="flex-item">
-                        <img src="slides_assets/endgames.png" alt="Endgames webpage screenshot" style="width:200px;">
-                        <br>
-                        <a target="_blank" href="https://endgamesimprov.com/classes/">Endgames Improv: 2965 Mission Street</a>
-                    </div>
-                    <div class="flex-item fragment">
-                        <img src="slides_assets/leelasf.png" alt="Leela SF webpage screenshot" style="width:200px;">
-                        <br>
-                        <a target="_blank" href="https://leela-sf.com/">Leela SF: 901 Mission Street</a>
-                    </div>
-                    <div class="flex-item fragment">
-                        <img src="slides_assets/studioact.png" alt="Studio ACT webpage screenshot" style="width:200px;">
-                        <br>
-                        <a target="_blank" href="https://www.act-sf.org/training/studio-a-c-t">Studio A.C.T: 1127 Market Street</a>
-                    </div>
-                    <div class="flex-item fragment">
-                        <img src="slides_assets/berkeleyrep.png" alt="Berkeley Rep webpage screenshot" style="width:200px;">
-                        <br>
-                        <a target="_blank" href="https://www.berkeleyrep.org/school-of-theatre/students/classes/">Berkeley Rep: 2071 Addison St, Berkeley</a>
-                    </div>
-                </div>
-
-            </section>
-
-            <section class="heading-only">
-                <h2>Spreading improv<br>
-                    🤗
-                </h2>
-            </section>
-
-            <section>
-                <h3>Running an improv club</h3>
-
-                <img src="slides_assets/improv_club.png" alt="Three people in an improv scene">
-            </section>
-
-            <section>
-                <h3>Bringing improv to work</h3>
-
-                <p>Our afternoon "shake-off" at Woebot:</p>
-                <img src="slides_assets/improv_woebot.png" alt="Photo from article of improv game at Woebot" style="border:1px solid grey; width:600px;">
-                <br>
-                <span class="smaller">
-                <a href="https://www.latimes.com/business/technology/la-fi-tn-woebot-20170823-htmlstory.html" target="_blank">
-                LA Times article about Woebot
-                </a>
-                </span>
-            </section>
-
-
-            <section>
-                <h3>Laser cutting for improv</h3>
-
-                <img src="slides_assets/improv_holder1.jpg" alt="Laser-cut wooden holder of improv game name slips" style="border:1px solid grey; height:400px; float:left; margin-right:20px;">
-
-                <img src="slides_assets/improv_holder2.jpg" alt="Laser-cut wooden holder of improv game name slips" style="border:1px solid grey; height:400px; float:left; margin-right:20px;">
-
-                <img src="slides_assets/improv_holder3.jpg" alt="Laser-cut wooden holder of improv game name slips" style="border:1px solid grey; height:400px; float:left;">
-
-            </section>
-
-            <section>
-                <h3>Documenting improv</h3>
-
-                <p>Because apparently I document everything...</p>
-                <img src="slides_assets/improvlists.png" alt="Screenshot of the Improv Lists website" style="border:1px solid grey; width:800px;">
-
-                <a target="_blank" href="https://github.com/pamelafox/improvlists/">
-                    github.com/pamelafox/improvlists/
-                </a>
-            </section>
-
-            <section class="heading-only">
-                <h2>Improv games
-                    <br>
-                    🎲
-                </h2>
-
-            </section>
-
-            <section>
-                <h3>Flavors of improv games</h3>
+                <h3>Now let's play it with embeddings</h3>
 
                 <ul>
-                    <li>Verbal
-                        <ul>
-                            <li>Storytelling
-                            <li>Word games
-                            <li>Generative games
-                        </ul>
-                    <li>Physical
-                        <ul>
-                            <li>Space objects
-                            <li>Working with props
-                        </ul>
-                    </li>
-                    <li>Character building
-                    <li>Scene building
-                    <li>Status games
-                    <li>Musical improv
+                    <li>What is a vector embedding?
+                    <li>Comparing vectors with cosine similarity
+                    <li>Finding the word "between" two words
+                    <li>Model vs. model: who converges?
                 </ul>
-            </section>
-
-            <section>
-                <h3>Let's play: Story Spine</h3>
-
-                <ul>
-                    <li>Once there was…
-                    <li>And every day…
-                    <li>Until one day…
-                    <li>And because of that…
-                    <li>And because of that…
-                    <li>And because of that…
-                    <li>Until finally…
-                    <li>And so…
-                    <li>The moral of the story is:
-                </ul>
-                <p>Full rules:
-                    <a target="_blank" href="https://github.com/pamelafox/improvlists/blob/master/games/Game%3A-Group-Story-Spine.md">
-                        Group-Story-Spine.md
-                    </a>
-                </p>
-            </section>
-
-            <section class="heading-only">
-                <h2>Playing improv with Python<br>
-                    🐍
-                </h2>
-            </section>
-
-            <section>
-                <h3>Can we play improv with a computer?</h3>
-
-                <p>We need the computer to generate a creative human-like response.</p>
-
-                <p>Possible tools:</p>
-
-                <ul>
-                    <li>Hidden markov models
-                    <li class="fragment">Custom trained ML models
-                    <li class="fragment">Large/Small Language Models
-                </ul>
-            </section>
-
-            <section>
-                <h3>Language Models</h3>
-
-                <p>Let's try these models...</p>
-
-                <table style="margin:0; font-size:1.0em;">
-                    <thead>
-                        <tr>
-                            <th>Company</th>
-                            <th>Model</th>
-                            <th>Parameters</th>
-                            <th>Host
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>OpenAI
-                            <td>gpt-4o-mini
-                            <td>??
-                            <td>OpenAI.com, Azure, GitHub Models
-                        <tr>
-                            <td>Meta
-                            <td>Llama3.1
-                            <td>8B, 70B, 405B
-                            <td>Azure, GitHub Models, Ollama
-                        <tr>
-                            <td>Microsoft
-                            <td>Phi3
-                            <td>3.8B, 14B
-                            <td>Azure, GitHub Models, Ollama
-                        <tr>
-                            <td>Mistral
-                            <td>Mistral small
-                            <td>??
-                            <td>Azure, GitHub Models, Ollama
-                    </tbody>
-                </table>
-            </section>
-
-            <section>
-                <h3>Ollama</h3>
-
-                <p><a target="_blank" href="https://ollama.com/">Ollama</a>
-                    is a tool for easily running local LLMs on your computer.
-                </p>
-
-                <img src="slides_assets/ollama_firstline.png" alt="Screenshot of Ollama running a local LLM that suggests the first line of an Improv scene" style="border:1px solid #ccc; width:900px;">
-
-                <p>You can also run it from GitHub Codespaces:
-                    <a target="_blank" href="https://github.com/pamelafox/ollama-python-playground">🔗 github.com/pamelafox/ollama-python-playground</a>
-                </p>
-
-                <p class="padded">We can call Ollama programmatically using:<br>
-                    <strong>HTTP</strong>, <strong>ollama package</strong>, or <strong>openai package</strong>.</p>
-            </section>
-
-            <section>
-                <h3>GitHub Models</h3>
-
-                <p>GitHub models are freely available models with very low rate limits.
-                    😢 Currently waitlist only, sign up at:
-                    <a target="_blank" href="https://github.com/marketplace/models">
-                        github.com/marketplace/models
-                    </a>
-                </p>
-
-                <img src="slides_assets/githubmodels.png" alt="Screenshot of GitHub models listing" style="border:1px solid #ccc; width:700px;">
-
-                <p class="padded">We can call GitHub models programmatically using:<br>
-                    <strong>HTTP</strong>, <strong>azure-ai-inference package</strong>, or <strong>openai package</strong>.</p>
-            </section>
-
-            <section>
-                <h3>Using the OpenAI SDK</h3>
-
-                <p>Since the openai package can be used for both Ollama and GitHub models, we'll use it for most examples.</p>
-
-                <pre><code data-trim data-noescape class="python">
-                response = client.chat.completions.create(
-                  model=model_name,
-                  messages=[
-                    {"role":"system",
-                     "content":"You're playing improv games."},
-                    {"role":"user",
-                     "content":"Suggest a random first line."}],
-                )
-                </code></pre>
-
-                <p>Full code: <a target="_blank" href="https://github.com/pamelafox/improv-with-python/blob/main/example.py">example.py</a></p>
-
-            </section>
-
-            <section>
-                <h3>Game: Story Spine</h3>
-                <h4>Let's start easy!</h4>
-
-                <p>Rules: <a href="https://github.com/pamelafox/improvlists/blob/master/games/Game%3A-Group-Story-Spine.md" target="_blank">Game: Group Story Spine</a></p>
-                <p>Code: <a href="https://github.com/pamelafox/improv-with-python/blob/main/storyspine.py" target="_blank">storyspine.py</a></p>
-
-                <div class="fragment">
-                    <p>Takeaways:</p>
-                    <ul>
-                        <li>Different models, different results
-                        <li>Some models are very wordy
-                        <li>Some models are very repetitive
-                        <li>It's fun to mix/match models and users
-                    </ul>
-            </section>
-
-            <section>
-                <h3>Game: Sentence-at-a-time Story</h3>
-                <h4>AKA: Will the language model ever end the story?</h4>
-
-                <p>Rules: <a href="https://github.com/pamelafox/improvlists/blob/master/games/Game%3A-Sentence-at-a-time-Story.md" target="_blank">Sentence-at-a-time-Story.md</a></p>
-                <p>Code: <a href="https://github.com/pamelafox/improv-with-python/blob/main/sentenceatatime.py" target="_blank">sentenceatatime.py</a></p>
-
-                <div class="fragment">
-                    Yes, but you may need regex...
-                </div>
-            </section>
-
-            <section>
-                <h3>Game: Word-at-a-time Story</h3>
-                <h4>AKA: Why can't language models count?</h4>
-
-                <p>Rules: <a href="https://github.com/pamelafox/improvlists/blob/master/games/Game%3A-Tweet-Generator.md" target="_blank">Tweet-Generator.md</a></p>
-                <p>Code: <a href="https://github.com/pamelafox/improv-with-python/blob/main/tweetgenerator.py" target="_blank">tweetgenerator.py</a></p>
-
-                <div class="fragment">
-                    <p>Approaches:</p>
-                    <ul>
-                        <li>Few shot learning
-                        <li>Post-processing
-                        <li>Fine-tuning
-                    </ul>
-                </div>
-            </section>
-
-            <section>
-                <h3>Game: Yes, And Product Factory</h3>
-                <h4>AKA: Can we use props??</h4>
-
-                <p>Rules: <a href="https://github.com/pamelafox/improvlists/blob/master/games/Game%3A-Yes%2C-And...-Product-Factory.md" target="_blank">Yes,And-Product-Factory.md</a></p>
-                <p>Code: <a href="https://github.com/pamelafox/improv-with-python/blob/main/yesandproduct.py" target="_blank">yesandproduct.py</a></p>
-
-                <p class="fragment">
-                Yes, with multimodal models!
-                </p>
-
-            </section>
-
-            <section>
-                <h3>Three Things!</h3>
-                <h4>AKA: Can we make lists??</h4>
-
-                <p>Rules: <a href="https://github.com/pamelafox/improvlists/blob/master/games/Game%3A-3-Things!.md" target="_blank">3-Things!.md</a></p>
-                <p>Code: <a href="https://github.com/pamelafox/improv-with-python/blob/main/threethings_simple.py" target="_blank">threethings_simple.py</a></p>
-
-                <div class="fragment">
-                    <p>Yes, but use <a target="_blank" href="https://platform.openai.com/docs/guides/function-calling">function calling</a>,
-                    if model supports it.<br>
-
-                    <a  class="smaller" target="_blank" href="https://ollama.com/blog/tool-support">
-                        Ollama blog: Tool support for language models
-                    </a>
-                    </p>
-
-
-                    <p>Add few-shot examples to improve response quality.<br>
-                    <a class="smaller" target="_blank" href="https://blog.langchain.dev/few-shot-prompting-to-improve-tool-calling-performance/">
-                        Langchain blog: Few-shot prompting to improve tool calling
-                    </a>
-
-                    <p>Other options:
-                    </p>
-                    <ul class="smaller">
-                        <li><a target="_blank" href="https://pypi.org/project/instructor/">Instructor</a> for structured outputs
-                        <li><a target="_blank" href="https://dottxt-ai.github.io/outlines/welcome/">Outlines</a> for JSON outputs
-                        <li><a target="_blank" href="https://openai.com/index/introducing-structured-outputs-in-the-api/">Structured Outputs from OpenAI</a> (<a target="_blank" href="https://github.com/ollama/ollama/issues/6473">Not yet supported in Ollama</a>)
-                    </ul>
-                </div>
-            </section>
-
-            <section>
-                <h3>Lessons learned</h3>
-
-                <ul>
-                    <li class="fragment">Larger models are better at following the rules
-                    <li class="fragment">Doing *anything* with language models teaches you a lot about them
-                    <li class="fragment">Improv with computers is fun!
-                    <li class="fragment">Improv with humans is more fun!
-                </ul>
-
-
             </section>
 
         </div>
@@ -452,7 +68,6 @@
     <script src="https://cdn.jsdelivr.net/npm/highlightjs-badge@0.1.9/highlightjs-badge.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/reveal.js-menu@2.1.0/menu.js"></script>
     <script>
-        const srcUrlPrefix = "https://cdn.jsdelivr.net/npm/reveal.js@4.1.0/";
         Reveal.initialize({
             hash: true,
             center: false,

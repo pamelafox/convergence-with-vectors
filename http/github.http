@@ -1,15 +1,8 @@
-POST https://models.inference.ai.azure.com/chat/completions
-Authorization: Bearer {{$dotenv TOKEN}}
+POST https://models.github.ai/inference/embeddings
+Authorization: ****** GITHUB_TOKEN}}
 Content-Type: application/json
 
 {
-    "model": "meta-llama-3-8b-instruct",
-    "messages": [{"role":"system","content":"You are an improv club member playing improv games."},
-                 {"role":"user","content":"Suggest a random first line for a scene."}],
-    "max_tokens": 800,
-    "temperature": 0.7,
-    "frequency_penalty": 0,
-    "presence_penalty": 0,
-    "top_p": 0.95,
-    "stop": null
+    "model": "openai/text-embedding-3-small",
+    "input": ["fire", "whale"]
 }
