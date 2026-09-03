@@ -1,11 +1,7 @@
-POST http://localhost:11434/v1/chat/completions
+POST http://localhost:11434/v1/embeddings
 Content-Type: application/json
 
 {
-    "model": "llama3.1:8b",
-    "messages": [{"role":"system","content":"You are an improv club member playing improv games."},
-                 {"role":"user","content":"Suggest a random first line for a scene."}],
-    "max_tokens": 800,
-    "temperature": 0.7,
-    "top_p": 0.95
+    "model": "nomic-embed-text",
+    "input": ["fire", "whale"]
 }
