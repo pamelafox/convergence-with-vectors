@@ -92,6 +92,14 @@ To use Ollama models, pull the embedding model first:
 ollama pull nomic-embed-text
 ```
 
+Then compute normalized embeddings with the local model:
+
+```shell
+python ollama.py fire whale
+```
+
+Pass `--model` to use another locally installed Ollama embedding model.
+
 To compute normalized embeddings locally with Microsoft's 270-million-parameter
 [Harrier](https://huggingface.co/microsoft/harrier-oss-v1-270m) model, run:
 
@@ -109,6 +117,7 @@ embeddings endpoints, which are a quick way to check that your setup works.
 | Path | Purpose |
 |------|---------|
 | [index.html](index.html) | The reveal.js slides for the talk |
+| [ollama.py](ollama.py) | Computes local embeddings with Ollama |
 | [harrier.py](harrier.py) | Computes local embeddings with Microsoft Harrier |
 | [slides_assets/](slides_assets) | CSS and images used by the slides |
 | [http/](http) | Sample embeddings requests for the VS Code REST Client extension |
