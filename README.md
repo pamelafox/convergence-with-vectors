@@ -76,7 +76,7 @@ The talk compares embedding models from multiple sources:
 |--------|----------------|-------|
 | [GitHub Models](https://github.com/marketplace/models) | `openai/text-embedding-3-small`, `cohere/cohere-embed-v3-english` | Requires a `GITHUB_TOKEN` environment variable |
 | [Ollama](https://ollama.com/) | `nomic-embed-text`, `mxbai-embed-large` | Requires Ollama installed locally, then `ollama pull <model>` |
-| [sentence-transformers](https://sbert.net/) | `all-MiniLM-L6-v2`, `all-mpnet-base-v2` | Downloads models from Hugging Face on first use |
+| [sentence-transformers](https://sbert.net/) | `all-MiniLM-L6-v2`, `all-mpnet-base-v2`, `microsoft/harrier-oss-v1-270m` | Downloads models from Hugging Face on first use |
 
 To use GitHub Models, you need a `GITHUB_TOKEN` environment variable that stores a GitHub personal access token.
 If you're running this inside a GitHub Codespace, the token is automatically available.
@@ -92,6 +92,15 @@ To use Ollama models, pull the embedding model first:
 ollama pull nomic-embed-text
 ```
 
+To compute normalized embeddings locally with Microsoft's 270-million-parameter
+[Harrier](https://huggingface.co/microsoft/harrier-oss-v1-270m) model, run:
+
+```shell
+python harrier.py fire whale
+```
+
+The model is downloaded from Hugging Face the first time the script runs.
+
 The [http](http) folder contains sample REST Client requests for the GitHub Models and Ollama
 embeddings endpoints, which are a quick way to check that your setup works.
 
@@ -100,6 +109,7 @@ embeddings endpoints, which are a quick way to check that your setup works.
 | Path | Purpose |
 |------|---------|
 | [index.html](index.html) | The reveal.js slides for the talk |
+| [harrier.py](harrier.py) | Computes local embeddings with Microsoft Harrier |
 | [slides_assets/](slides_assets) | CSS and images used by the slides |
 | [http/](http) | Sample embeddings requests for the VS Code REST Client extension |
 | [AGENTS.md](AGENTS.md) | Context and conventions for AI coding agents |
