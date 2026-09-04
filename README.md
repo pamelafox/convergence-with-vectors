@@ -109,6 +109,18 @@ python harrier.py fire whale
 
 The model is downloaded from Hugging Face the first time the script runs.
 
+To compare cosine similarities from the CPU-friendly
+[`all-MiniLM-L6-v2`](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
+and [`all-MiniLM-L12-v2`](https://huggingface.co/sentence-transformers/all-MiniLM-L12-v2)
+models, run:
+
+```shell
+python minilm.py fire whale
+```
+
+You can pass more than two texts to compare every pair. Both models are downloaded from
+Hugging Face on first use and explicitly run on CPU.
+
 The [http](http) folder contains sample REST Client requests for the GitHub Models and Ollama
 embeddings endpoints, which are a quick way to check that your setup works.
 
@@ -119,6 +131,7 @@ embeddings endpoints, which are a quick way to check that your setup works.
 | [index.html](index.html) | The reveal.js slides for the talk |
 | [ollama.py](ollama.py) | Computes local embeddings with Ollama |
 | [harrier.py](harrier.py) | Computes local embeddings with Microsoft Harrier |
+| [minilm.py](minilm.py) | Compares cosine similarities from two MiniLM models on CPU |
 | [slides_assets/](slides_assets) | CSS and images used by the slides |
 | [http/](http) | Sample embeddings requests for the VS Code REST Client extension |
 | [AGENTS.md](AGENTS.md) | Context and conventions for AI coding agents |
