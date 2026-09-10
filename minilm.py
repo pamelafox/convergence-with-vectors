@@ -15,8 +15,17 @@ DEFAULT_TEXTS = ["fire", "whale"]
 
 def cosine_similarities(texts: list[str], model_name: str) -> tuple[int, list[tuple[str, str, float]]]:
     model = SentenceTransformer(model_name, device="cpu")
-    embeddings = model.encode(texts, normalize_embeddings=True, convert_to_numpy=True)
-    pairs = [(texts[first], texts[second], float(np.dot(embeddings[first], embeddings[second]))) for first, second in combinations(range(len(texts)), 2)]
+    embeddings = model.encode(
+        texts,
+        normalize_embeddings=True,
+        convert_to_numpy=True,
+    )
+
+    pairs: list[tuple[str, str, float]] = []
+    for first, second in combinations(range(len(texts)), 2):
+        similarity = float(np.dot(embeddings[first], embeddings[second]))
+        pairs.append((texts[first], texts[second], similarity))
+
     return embeddings.shape[1], pairs
 
 
