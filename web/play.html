@@ -170,18 +170,22 @@
         return `Round limit reached without convergence or a loop (pair ended at [${last.pairOut.join(", ")}]).`;
       }
 
+      function addCell(row, text) {
+        const cell = document.createElement("td");
+        cell.textContent = text;
+        row.appendChild(cell);
+      }
+
       function renderPath(path) {
         pathTableBody.innerHTML = "";
         for (const step of path) {
           const row = document.createElement("tr");
           const outputs = step.outputs || {};
-          row.innerHTML = `
-            <td>${step.round}</td>
-            <td>${step.pairIn.join(" / ")}</td>
-            <td>${outputs.A || ""}</td>
-            <td>${outputs.B || ""}</td>
-            <td>${step.pairOut.join(" / ")}</td>
-          `;
+          addCell(row, step.round);
+          addCell(row, step.pairIn.join(" / "));
+          addCell(row, outputs.A || "");
+          addCell(row, outputs.B || "");
+          addCell(row, step.pairOut.join(" / "));
           pathTableBody.appendChild(row);
         }
         pathTable.hidden = false;
@@ -202,7 +206,7 @@
         try {
           const [modelDataA, modelDataB] = await Promise.all([loadModelEmbeddings(modelNameA), loadModelEmbeddings(modelNameB)]);
 
-          if (!modelDataA.words.includes(wordA) || !modelDataA.words.includes(wordB)) {
+          if (!modelDataA.index.has(wordA) || !modelDataA.index.has(wordB) || !modelDataB.index.has(wordA) || !modelDataB.index.has(wordB)) {
             throw new Error(`Both words must be in the vocabulary. Try one of: ${modelDataA.words.slice(0, 10).join(", ")}...`);
           }
 

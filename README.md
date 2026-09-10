@@ -16,6 +16,7 @@ which explores vector embeddings by recreating the improv word game
 * [Setting up the environment](#setting-up-the-environment)
 * [Using embedding models](#using-embedding-models)
 * [Comparing word-combination operators](#comparing-word-combination-operators)
+* [Playing Convergence in the browser](#playing-convergence-in-the-browser)
 * [Repository structure](#repository-structure)
 
 ## The Convergence game
@@ -201,6 +202,31 @@ required):
 python -m pytest tests/
 ```
 
+## Playing Convergence in the browser
+
+The [web](web) folder has a static, GitHub-Pages-friendly version of the Convergence simulation:
+[**web/play.html**](web/play.html) lets you pick two starting words, two models, and an operator,
+then runs the same round-by-round simulation as `simulate_convergence.py` entirely client-side.
+
+There's no model inference in the browser: `export_web_embeddings.py` precomputes normalized
+embeddings for a closed ~1000-word vocabulary ([data/vocab_1000.txt](data/vocab_1000.txt)) for each
+model and writes them to JSON files under `web/data/`, which the page simply fetches. Because of
+this, the web version only supports the vocabulary-only operators (`centroid`, `balanced`, `mean`,
+`geometric_mean`) and requires both starting words to come from that vocabulary — the `textual`
+operator, which needs to embed an arbitrary phrase at request time, isn't available in the browser.
+
+To regenerate the JSON files after changing the vocabulary or model list:
+
+```shell
+python export_web_embeddings.py --vocab data/vocab_1000.txt --output-dir web/data
+```
+
+To try it locally, run a static server from the repo root and open `web/play.html`:
+
+```shell
+python -m http.server 8000
+```
+
 ## Repository structure
 
 | Path | Purpose |
@@ -217,6 +243,9 @@ python -m pytest tests/
 | [simulate_convergence.py](simulate_convergence.py) | CLI: simulate the Convergence game between two models |
 | [data/sample_vocab.txt](data/sample_vocab.txt) | Sample candidate vocabulary |
 | [data/sample_pairs.csv](data/sample_pairs.csv) | Sample word pairs for `compare_batch.py` |
+| [data/vocab_1000.txt](data/vocab_1000.txt) | ~1000-word vocabulary used by the browser game |
+| [export_web_embeddings.py](export_web_embeddings.py) | CLI: precompute and export vocabulary embeddings as JSON for the browser game |
+| [web/](web) | Static, GitHub-Pages-friendly browser version of the Convergence game |
 | [tests/](tests) | Focused pytest tests for the modules above |
 | [minilm.py](minilm.py) | Compares cosine similarities from two MiniLM models on CPU |
 | [slides_assets/](slides_assets) | CSS and images used by the slides |

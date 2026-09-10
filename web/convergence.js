@@ -23,7 +23,7 @@ const modelCache = new Map();
  * @param {string} modelName - Short model name, matching the JSON file's basename
  *   (e.g. "minilm-l6" loads "data/minilm-l6.json").
  * @param {string} dataDir - Directory (relative to the page) containing the JSON files.
- * @returns {Promise<{model: string, words: string[], vectors: number[][]}>}
+ * @returns {Promise<{model: string, words: string[], vectors: number[][], index: Map<string, number>}>}
  */
 export async function loadModelEmbeddings(modelName, dataDir = "data") {
   if (modelCache.has(modelName)) {
@@ -34,6 +34,7 @@ export async function loadModelEmbeddings(modelName, dataDir = "data") {
     throw new Error(`Failed to load embeddings for model "${modelName}": ${response.status}`);
   }
   const payload = await response.json();
+  payload.index = new Map(payload.words.map((word, i) => [word, i]));
   modelCache.set(modelName, payload);
   return payload;
 }
@@ -60,9 +61,9 @@ function similaritiesTo(vectors, query) {
   return vectors.map((row) => dot(row, query));
 }
 
-function vectorFor(words, vectors, word) {
-  const idx = words.indexOf(word);
-  return idx === -1 ? null : vectors[idx];
+function vectorFor(modelData, word) {
+  const idx = modelData.index ? modelData.index.get(word) : modelData.words.indexOf(word);
+  return idx === undefined || idx === -1 ? null : modelData.vectors[idx];
 }
 
 const PAIRWISE_OPERATORS = {
@@ -115,8 +116,8 @@ export function applyOperator(operatorName, modelData, wordA, wordB, options = {
     throw new Error(`Unknown operator "${operatorName}"; choose from ${OPERATOR_NAMES}`);
   }
   const { words, vectors } = modelData;
-  const vecA = vectorFor(words, vectors, wordA);
-  const vecB = vectorFor(words, vectors, wordB);
+  const vecA = vectorFor(modelData, wordA);
+  const vecB = vectorFor(modelData, wordB);
   if (!vecA || !vecB) {
     throw new Error(`Both words must be in the vocabulary (got "${wordA}", "${wordB}")`);
   }
