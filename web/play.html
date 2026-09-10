@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,7 +8,7 @@
     <style>
       body {
         font-family: "Work Sans", sans-serif;
-        max-width: 720px;
+        max-width: 1100px;
         margin: 2rem auto;
         padding: 0 1rem;
         color: #222;
@@ -56,33 +56,148 @@
       datalist {
         display: none;
       }
+      fieldset {
+        margin-top: 1.5rem;
+        border: 1px solid #ccc;
+      }
+      legend, summary {
+        font-weight: 600;
+      }
+      input[type="radio"] {
+        width: auto;
+        margin-right: 0.5rem;
+      }
+      .operator-help {
+        margin: 0.3rem 0 1rem 1.6rem;
+      }
+      .operator-help details {
+        margin-top: 0.4rem;
+      }
+      summary {
+        cursor: pointer;
+      }
+      .table-scroll {
+        overflow-x: auto;
+      }
+      .model-panels {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+        gap: 1.5rem;
+      }
+      .round-details {
+        margin: 1rem 0;
+        padding: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 0.5rem;
+      }
+      .winner, .converged {
+        background: #e5f4e9;
+        font-weight: 600;
+      }
+      .loop, .loop-target {
+        background: #fff2cc;
+      }
+      tr:target, .round-details:target {
+        outline: 3px solid #765600;
+        outline-offset: -3px;
+      }
+      .similarity-value {
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+      .bar-track {
+        display: block;
+        position: relative;
+        width: 100%;
+        min-width: 4rem;
+        height: 0.5rem;
+        background: #eee;
+        margin-top: 0.3rem;
+      }
+      .bar-track::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: -2px;
+        height: 12px;
+        border-left: 1px solid #444;
+      }
+      .bar {
+        position: absolute;
+        height: 100%;
+        background: #1766a0;
+      }
+      .bar.second {
+        background: #9b467d;
+      }
+      figure {
+        margin: 1rem 0;
+      }
+      svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      figcaption, .note {
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+      button:disabled {
+        cursor: wait;
+      }
     </style>
   </head>
   <body>
     <h1>Play Convergence with embeddings</h1>
     <p>
       Pick two starting words and two "player" models. Each model independently applies the chosen
-      operator to the current pair; their outputs become the next round's pair. The round stops
+      operator to the current pair; their outputs become the next round's pair. The game stops
       when both models agree, a pair repeats, no candidates remain, or the round limit is hit.
       Words must come from the fixed ~1000-word vocabulary, since that's the only vocabulary with
       precomputed embeddings for this page.
     </p>
 
     <label for="word-a">Word A</label>
-    <input id="word-a" list="vocab-words" placeholder="e.g. fire" autocomplete="off" />
+    <input id="word-a" list="vocab-words" placeholder="e.g. fire" autocomplete="off" aria-describedby="word-help" />
 
     <label for="word-b">Word B</label>
-    <input id="word-b" list="vocab-words" placeholder="e.g. whale" autocomplete="off" />
+    <input id="word-b" list="vocab-words" placeholder="e.g. whale" autocomplete="off" aria-describedby="word-help" />
 
     <datalist id="vocab-words"></datalist>
 
-    <label for="operator">Operator</label>
-    <select id="operator">
-      <option value="centroid">centroid</option>
-      <option value="balanced">balanced</option>
-      <option value="mean">mean</option>
-      <option value="geometric_mean">geometric_mean</option>
-    </select>
+    <p id="word-help" class="note">Start typing for vocabulary suggestions, or pick two random words.</p>
+    <button id="random" type="button" disabled>Random words</button>
+    <span id="vocab-status" role="status">Loading vocabulary…</span>
+
+    <fieldset>
+      <legend>Operator</legend>
+      <label><input type="radio" name="operator" value="centroid" checked aria-describedby="centroid-help" />Centroid</label>
+      <div class="operator-help" id="centroid-help">
+        Find the word closest to the direction halfway between the input vectors.
+        <details><summary>Scoring formula</summary>cos(candidate, normalize(vector A + vector B))</details>
+      </div>
+      <label><input type="radio" name="operator" value="balanced" aria-describedby="balanced-help" />Balanced</label>
+      <div class="operator-help" id="balanced-help">
+        Maximize the weaker connection: a candidate needs to be close to both words.
+        <details><summary>Scoring formula</summary>min(a, b)</details>
+      </div>
+      <label><input type="radio" name="operator" value="mean" aria-describedby="mean-help" />Mean</label>
+      <div class="operator-help" id="mean-help">
+        Maximize average similarity: a strong connection can compensate for a weak one.
+        <details><summary>Scoring formula</summary>(a + b) / 2</details>
+      </div>
+      <label><input type="radio" name="operator" value="geometric_mean" aria-describedby="geometric-help" />Geometric mean</label>
+      <div class="operator-help" id="geometric-help">
+        Reward strength on both sides. If either similarity is zero or negative, the score is zero.
+        <details><summary>Scoring formula</summary>√(max(a, 0) × max(b, 0))</details>
+      </div>
+      <p class="note">
+        Here a and b are a candidate's cosine similarities to the two input words, not the two models.
+        With normalized embeddings, centroid and mean have equivalent rankings for a fixed pair
+        (apart from numerical rounding near ties), but different score scales.
+        If the input vectors cancel exactly, centroid scores are all zero.
+      </p>
+    </fieldset>
 
     <label for="model-a">Model A</label>
     <select id="model-a"></select>
@@ -93,11 +208,19 @@
     <label for="max-rounds">Max rounds</label>
     <input id="max-rounds" type="number" min="1" max="50" value="10" />
 
-    <button id="play">Play</button>
+    <button id="play" disabled>Play</button>
 
-    <div id="error"></div>
-    <div id="outcome"></div>
+    <div id="error" role="alert"></div>
+    <div id="outcome" role="status"></div>
+    <p class="note">
+      Each model chooses the highest-scoring eligible word from the fixed vocabulary; there is no
+      model inference during play. Current input words are excluded, but older words may return.
+      Scores are rounded to nine decimal places for ranking, with alphabetical tie-breaking.
+      Similarities and operator scores are not probabilities or confidence estimates.
+    </p>
+    <div class="table-scroll">
     <table id="path-table" hidden>
+      <caption id="run-description"></caption>
       <thead>
         <tr>
           <th>Round</th>
@@ -105,19 +228,21 @@
           <th>Model A &rarr;</th>
           <th>Model B &rarr;</th>
           <th>Pair out</th>
+          <th>What happened?</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
+    </div>
+    <div id="rounds"></div>
 
     <script type="module">
-      import { loadModelEmbeddings, simulateConvergence } from "./convergence.js";
+      import { applyOperator, loadModelEmbeddings, simulateConvergence } from "./convergence.js";
 
       const modelSelectA = document.getElementById("model-a");
       const modelSelectB = document.getElementById("model-b");
       const wordAInput = document.getElementById("word-a");
       const wordBInput = document.getElementById("word-b");
-      const operatorSelect = document.getElementById("operator");
       const maxRoundsInput = document.getElementById("max-rounds");
       const playButton = document.getElementById("play");
       const errorDiv = document.getElementById("error");
@@ -125,12 +250,17 @@
       const pathTable = document.getElementById("path-table");
       const pathTableBody = pathTable.querySelector("tbody");
       const vocabDatalist = document.getElementById("vocab-words");
+      const randomButton = document.getElementById("random");
+      const vocabStatus = document.getElementById("vocab-status");
+      const roundsDiv = document.getElementById("rounds");
 
-      let manifest = null;
+      let vocabulary = [];
 
       async function init() {
         const response = await fetch("data/manifest.json");
-        manifest = await response.json();
+        if (!response.ok) throw new Error(`Manifest request failed: ${response.status}`);
+        const manifest = await response.json();
+        if (!manifest.models.length) throw new Error("No models are available.");
         for (const modelName of manifest.models) {
           for (const select of [modelSelectA, modelSelectB]) {
             const option = document.createElement("option");
@@ -148,24 +278,37 @@
         // list works here).
         if (manifest.models.length > 0) {
           const firstModel = await loadModelEmbeddings(manifest.models[0]);
-          for (const word of firstModel.words) {
+          vocabulary = firstModel.words;
+          for (const word of vocabulary) {
             const option = document.createElement("option");
             option.value = word;
             vocabDatalist.appendChild(option);
           }
         }
+        if (!vocabulary.length) throw new Error("The vocabulary is empty.");
+        randomButton.disabled = vocabulary.length < 2;
+        playButton.disabled = false;
+        vocabStatus.textContent = `${vocabulary.length} words available.`;
       }
 
-      function describeOutcome(outcome, path) {
+      randomButton.addEventListener("click", () => {
+        const first = Math.floor(Math.random() * vocabulary.length);
+        const offset = 1 + Math.floor(Math.random() * (vocabulary.length - 1));
+        wordAInput.value = vocabulary[first];
+        wordBInput.value = vocabulary[(first + offset) % vocabulary.length];
+        vocabStatus.textContent = `Random starting words: ${wordAInput.value} and ${wordBInput.value}. Press Play to run.`;
+      });
+
+      function describeOutcome({ outcome, path, termination }) {
         const last = path[path.length - 1];
         if (outcome === "converged") {
           return `Converged on "${last.pairOut[0]}" after ${last.round} round(s).`;
         }
         if (outcome === "loop") {
-          return `Loop detected: pair [${last.pairOut.join(", ")}] at round ${last.round} repeats an earlier round's pair.`;
+          return `Loop detected: pair [${last.pairOut.join(", ")}] at round ${last.round} returns to round ${termination.repeatedRound}.`;
         }
         if (outcome === "stalled") {
-          return `Stalled at round ${last.round}: no candidates remained.`;
+          return `Stalled while attempting round ${termination.round}: ${termination.reason}`;
         }
         return `Round limit reached without convergence or a loop (pair ended at [${last.pairOut.join(", ")}]).`;
       }
@@ -174,18 +317,210 @@
         const cell = document.createElement("td");
         cell.textContent = text;
         row.appendChild(cell);
+        return cell;
       }
 
-      function renderPath(path) {
-        pathTableBody.innerHTML = "";
+      function element(tag, text, className) {
+        const node = document.createElement(tag);
+        if (text !== undefined) node.textContent = text;
+        if (className) node.className = className;
+        return node;
+      }
+
+      function similarityCell(row, value, second = false) {
+        const cell = addCell(row, value.toFixed(4));
+        cell.className = "similarity-value";
+        const track = element("span", undefined, "bar-track");
+        track.setAttribute("aria-hidden", "true");
+        const bar = element("span", undefined, second ? "bar second" : "bar");
+        const bounded = Math.max(-1, Math.min(1, value));
+        bar.style.left = `${50 + Math.min(0, bounded) * 50}%`;
+        bar.style.width = `${Math.abs(bounded) * 50}%`;
+        track.appendChild(bar);
+        cell.appendChild(track);
+      }
+
+      function winnerExplanation(candidates, operator) {
+        const [winner, runnerUp] = candidates;
+        const explanations = {
+          centroid: "It is closest to the normalized sum of the input vectors.",
+          balanced: "Its weaker connection is strongest among eligible candidates.",
+          mean: "Its average similarity is highest among eligible candidates.",
+          geometric_mean: "Its geometric mean of the clamped similarities is highest among eligible candidates.",
+        };
+        let reason = explanations[operator];
+        if (runnerUp && Math.round(winner.score * 1e9) === Math.round(runnerUp.score * 1e9)) {
+          reason = "It ties for the highest score after rounding to nine decimal places and wins alphabetically.";
+        } else if (runnerUp) {
+          const margin = winner.score - runnerUp.score;
+          reason += ` Score margin over "${runnerUp.candidate}": ${margin < 0.0001 ? margin.toExponential(2) : margin.toFixed(4)}.`;
+        } else {
+          reason += " It is the only eligible candidate.";
+        }
+        return `Winner: "${winner.candidate}". ${reason}`;
+      }
+
+      function svgElement(tag, attributes = {}, text) {
+        const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+        for (const [name, value] of Object.entries(attributes)) node.setAttribute(name, value);
+        if (text !== undefined) node.textContent = text;
+        return node;
+      }
+
+      function scatterplot(candidates, pair, operator, modelName) {
+        const figure = element("figure");
+        const svg = svgElement("svg", { viewBox: "0 0 440 420", role: "img", "aria-label": `${modelName}: candidate similarities to ${pair[0]} and ${pair[1]}. Numbered points match the top candidates table.` });
+        svg.appendChild(svgElement("title", {}, `Connections to "${pair[0]}" and "${pair[1]}" — ${modelName}`));
+        const x = (value) => 65 + ((value + 1) / 2) * 340;
+        const y = (value) => 355 - ((value + 1) / 2) * 320;
+        const line = (a, b, attributes) => svg.appendChild(svgElement("line", { x1: x(a[0]), y1: y(a[1]), x2: x(b[0]), y2: y(b[1]), ...attributes }));
+        if (operator === "geometric_mean") {
+          svg.appendChild(svgElement("rect", { x: x(-1), y: y(1), width: 170, height: 320, fill: "#f3edf5" }));
+          svg.appendChild(svgElement("rect", { x: x(0), y: y(0), width: 170, height: 160, fill: "#f3edf5" }));
+        }
+        for (const tick of [-1, -0.5, 0, 0.5, 1]) {
+          line([tick, -1], [tick, 1], { stroke: "#ddd" });
+          line([-1, tick], [1, tick], { stroke: "#ddd" });
+          svg.appendChild(svgElement("text", { x: x(tick), y: 375, "text-anchor": "middle", "font-size": 12 }, tick));
+          svg.appendChild(svgElement("text", { x: 55, y: y(tick) + 4, "text-anchor": "end", "font-size": 12 }, tick));
+        }
+        line([-1, -1], [1, 1], { stroke: "#555", "stroke-dasharray": "5 5" });
+        const levels = operator === "geometric_mean" ? [0.2, 0.4, 0.6, 0.8] : [-0.5, 0, 0.25, 0.5, 0.75];
+        for (const level of levels) {
+          let points;
+          if (operator === "balanced") {
+            points = [[level, 1], [level, level], [1, level]];
+          } else if (operator === "geometric_mean") {
+            points = Array.from({ length: 81 }, (_, i) => {
+              const a = level * level + (1 - level * level) * i / 80;
+              return [a, level * level / a];
+            });
+          } else {
+            // Centroid rescales the mean by a fixed positive factor for this pair.
+            points = [[Math.max(-1, 2 * level - 1), Math.min(1, 2 * level + 1)], [Math.min(1, 2 * level + 1), Math.max(-1, 2 * level - 1)]];
+          }
+          svg.appendChild(svgElement("polyline", { points: points.map(([a, b]) => `${x(a)},${y(b)}`).join(" "), fill: "none", stroke: "#8563a6", "stroke-width": 1.5 }));
+        }
+        for (const candidate of [...candidates].reverse()) {
+          const top = candidate.rank <= 5;
+          const point = svgElement("circle", {
+            cx: x(candidate.simA), cy: y(candidate.simB), r: top ? 6 : 2.5,
+            fill: candidate.rank === 1 ? "#176438" : top ? "#1766a0" : "#66717d",
+            opacity: top ? 1 : 0.4,
+          });
+          point.appendChild(svgElement("title", {}, `${candidate.rank}. ${candidate.candidate}: similarities ${candidate.simA.toFixed(4)}, ${candidate.simB.toFixed(4)}; score ${candidate.score.toFixed(4)}`));
+          svg.appendChild(point);
+        }
+        for (const candidate of candidates.slice(0, 5)) {
+          svg.appendChild(svgElement("text", {
+            x: x(candidate.simA) + 8, y: y(candidate.simB) - 8, "font-size": 12,
+            stroke: "white", "stroke-width": 3, "paint-order": "stroke", fill: "#222",
+          }, candidate.rank));
+        }
+        svg.appendChild(svgElement("text", { x: 235, y: 402, "text-anchor": "middle", "font-size": 13 }, `Similarity to "${pair[0]}"`));
+        svg.appendChild(svgElement("text", { transform: "translate(16 195) rotate(-90)", "text-anchor": "middle", "font-size": 13 }, `Similarity to "${pair[1]}"`));
+        figure.appendChild(svg);
+        figure.appendChild(element("figcaption",
+          `${candidates.length} eligible words. Green = winner (${candidates[0].candidate}); blue = other top-five candidates, numbered as in the table. ` +
+          "Hover a dot for its word and scores. The dashed diagonal means equal similarity to both inputs. " +
+          "Purple lines connect equal operator scores; higher scores lie toward the upper right. " +
+          (operator === "geometric_mean" ? "Shaded regions score zero because at least one similarity is nonpositive. " : "") +
+          (operator === "centroid" ? "Contours use the equivalent mean ranking; if the input vectors cancel exactly, all scores tie at zero. " : "") +
+          "These are actual similarities, not a 2D projection of embeddings. Axes run from −1 to 1 in both panels; different models' scores are not necessarily calibrated alike."
+        ));
+        return figure;
+      }
+
+      function renderRound(step, operator, models) {
+        const panels = element("div", undefined, "model-panels");
+        for (const [player, model] of [["A", models[0]], ["B", models[1]]]) {
+          const panel = element("section");
+          const candidates = step.candidates[player];
+          panel.appendChild(element("h3", `Model ${player}: ${model.model}`));
+          panel.appendChild(element("p", winnerExplanation(candidates, operator)));
+          const scroll = element("div", undefined, "table-scroll");
+          const table = element("table");
+          table.appendChild(element("caption", `Top ${candidates.length} candidates — round ${step.round}, model ${player}`));
+          const head = document.createElement("thead");
+          const header = document.createElement("tr");
+          for (const title of ["Rank", "Word", `↔ ${step.pairIn[0]}`, `↔ ${step.pairIn[1]}`, "Score"]) {
+            const th = element("th", title);
+            th.scope = "col";
+            header.appendChild(th);
+          }
+          head.appendChild(header);
+          table.appendChild(head);
+          const body = document.createElement("tbody");
+          for (const candidate of candidates) {
+            const row = document.createElement("tr");
+            if (candidate.rank === 1) row.className = "winner";
+            addCell(row, candidate.rank);
+            addCell(row, candidate.candidate + (candidate.rank === 1 ? " ★" : ""));
+            similarityCell(row, candidate.simA);
+            similarityCell(row, candidate.simB, true);
+            addCell(row, candidate.score.toFixed(4));
+            body.appendChild(row);
+          }
+          table.appendChild(body);
+          scroll.appendChild(table);
+          panel.appendChild(scroll);
+          panel.appendChild(element("p", "Bars span −1 to 1 with a center mark at zero. Blue = first input; purple = second. Displayed values use four decimals; ranking uses nine.", "note"));
+          const allCandidates = applyOperator(operator, model, ...step.pairIn, { topK: model.words.length, exclude: new Set(step.pairIn) });
+          panel.appendChild(scatterplot(allCandidates, step.pairIn, operator, model.model));
+          panels.appendChild(panel);
+        }
+        return panels;
+      }
+
+      function renderPath(result, operator, models) {
+        const { path, outcome, termination } = result;
+        pathTableBody.replaceChildren();
+        roundsDiv.replaceChildren();
+        document.getElementById("run-description").textContent = `Played with ${operator.replaceAll("_", " ")} — Model A: ${models[0].model}; Model B: ${models[1].model}`;
         for (const step of path) {
           const row = document.createElement("tr");
+          row.id = `round-${step.round}`;
           const outputs = step.outputs || {};
           addCell(row, step.round);
           addCell(row, step.pairIn.join(" / "));
           addCell(row, outputs.A || "");
           addCell(row, outputs.B || "");
           addCell(row, step.pairOut.join(" / "));
+          const annotation = addCell(row, step.round === 0 ? "Starting pair" : "");
+          if (step.outputs) {
+            const details = element("details", undefined, "round-details");
+            details.id = `details-${step.round}`;
+            details.appendChild(element("summary", `Round ${step.round}: Why these words? (${step.pairIn.join(" / ")})`));
+            details.addEventListener("toggle", () => {
+              if (details.open && details.children.length === 1) details.appendChild(renderRound(step, operator, models));
+            });
+            roundsDiv.appendChild(details);
+            const link = element("a", "Why these words?");
+            link.href = `#details-${step.round}`;
+            link.addEventListener("click", () => { details.open = true; });
+            annotation.appendChild(link);
+          }
+          if (outcome === "loop" && step.round === termination.repeatedRound) {
+            row.classList.add("loop-target");
+            annotation.appendChild(element("div", "↶ Loop returns here"));
+          }
+          if (step === path[path.length - 1]) {
+            if (outcome === "converged") {
+              row.classList.add("converged");
+              annotation.appendChild(element("div", "✓ Both models agree"));
+            } else if (outcome === "loop") {
+              row.classList.add("loop");
+              const link = element("a", `↶ Back to round ${termination.repeatedRound}`);
+              link.href = `#round-${termination.repeatedRound}`;
+              const returnLine = element("div");
+              returnLine.appendChild(link);
+              annotation.appendChild(returnLine);
+            } else {
+              annotation.appendChild(element("div", outcome === "stalled"
+                ? `Next round (${termination.round}) stalled: ${termination.reason}`
+                : "Round limit — no agreement or repeated pair detected"));
+            }
+          }
           pathTableBody.appendChild(row);
         }
         pathTable.hidden = false;
@@ -195,14 +530,18 @@
         errorDiv.textContent = "";
         outcomeDiv.textContent = "";
         pathTable.hidden = true;
+        roundsDiv.replaceChildren();
 
         const wordA = wordAInput.value.trim();
         const wordB = wordBInput.value.trim();
         const modelNameA = modelSelectA.value;
         const modelNameB = modelSelectB.value;
-        const operator = operatorSelect.value;
-        const maxRounds = parseInt(maxRoundsInput.value, 10) || 10;
+        const operator = document.querySelector('input[name="operator"]:checked').value;
+        if (!maxRoundsInput.reportValidity()) return;
+        const maxRounds = Number(maxRoundsInput.value) || 10;
 
+        playButton.disabled = true;
+        playButton.textContent = "Playing…";
         try {
           const [modelDataA, modelDataB] = await Promise.all([loadModelEmbeddings(modelNameA), loadModelEmbeddings(modelNameB)]);
 
@@ -210,19 +549,23 @@
             throw new Error(`Both words must be in the vocabulary. Try one of: ${modelDataA.words.slice(0, 10).join(", ")}...`);
           }
 
-          const { path, outcome } = simulateConvergence(modelDataA, modelDataB, wordA, wordB, {
+          const result = simulateConvergence(modelDataA, modelDataB, wordA, wordB, {
             operator,
             maxRounds,
           });
 
-          renderPath(path);
-          outcomeDiv.textContent = `Outcome: ${outcome} -- ${describeOutcome(outcome, path)}`;
+          renderPath(result, operator, [modelDataA, modelDataB]);
+          outcomeDiv.textContent = describeOutcome(result);
         } catch (err) {
           errorDiv.textContent = err.message;
+        } finally {
+          playButton.disabled = false;
+          playButton.textContent = "Play";
         }
       });
 
       init().catch((err) => {
+        vocabStatus.textContent = "Vocabulary unavailable.";
         errorDiv.textContent = `Failed to load vocabulary data: ${err.message}`;
       });
     </script>

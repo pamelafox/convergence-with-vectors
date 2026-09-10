@@ -147,51 +147,58 @@ export function applyOperator(operatorName, modelData, wordA, wordB, options = {
  * @param {string} wordA
  * @param {string} wordB
  * @param {{operator?: string, maxRounds?: number, topK?: number, includeInputs?: boolean}} [options]
- * @returns {{path: object[], outcome: string}}
+ * @returns {{path: object[], outcome: string, termination: object}}
  */
 export function simulateConvergence(modelDataA, modelDataB, wordA, wordB, options = {}) {
   const { operator = "centroid", maxRounds = 10, topK = 5, includeInputs = false } = options;
 
   let currentPair = [wordA, wordB];
-  const visited = new Set([currentPair.join("\u0000")]);
+  const visited = new Map([[currentPair.join("\u0000"), 0]]);
   const path = [{ round: 0, pairIn: currentPair, outputs: null, pairOut: currentPair }];
   let outcome = "round_limit";
+  let termination = { round: maxRounds };
 
   for (let roundNumber = 1; roundNumber <= maxRounds; roundNumber++) {
     const exclude = includeInputs ? null : new Set(currentPair);
     let outA;
     let outB;
+    let candidatesA;
+    let candidatesB;
     try {
-      const candidatesA = applyOperator(operator, modelDataA, currentPair[0], currentPair[1], { topK, exclude });
-      const candidatesB = applyOperator(operator, modelDataB, currentPair[0], currentPair[1], { topK, exclude });
+      candidatesA = applyOperator(operator, modelDataA, currentPair[0], currentPair[1], { topK, exclude });
+      candidatesB = applyOperator(operator, modelDataB, currentPair[0], currentPair[1], { topK, exclude });
       if (candidatesA.length === 0 || candidatesB.length === 0) {
         outcome = "stalled";
+        termination = { round: roundNumber, reason: "No candidates remained after excluding the current input words." };
         break;
       }
       outA = candidatesA[0].candidate;
       outB = candidatesB[0].candidate;
     } catch (err) {
       outcome = "stalled";
+      termination = { round: roundNumber, reason: err.message };
       break;
     }
 
     const newPair = [outA, outB];
-    path.push({ round: roundNumber, pairIn: currentPair, outputs: { A: outA, B: outB }, pairOut: newPair });
+    path.push({ round: roundNumber, pairIn: currentPair, outputs: { A: outA, B: outB }, pairOut: newPair, candidates: { A: candidatesA, B: candidatesB } });
 
     if (outA === outB) {
       outcome = "converged";
+      termination = { round: roundNumber };
       currentPair = newPair;
       break;
     }
     const key = newPair.join("\u0000");
     if (visited.has(key)) {
       outcome = "loop";
+      termination = { round: roundNumber, repeatedRound: visited.get(key) };
       currentPair = newPair;
       break;
     }
-    visited.add(key);
+    visited.set(key, roundNumber);
     currentPair = newPair;
   }
 
-  return { path, outcome };
+  return { path, outcome, termination };
 }

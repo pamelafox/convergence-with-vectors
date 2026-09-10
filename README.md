@@ -207,6 +207,12 @@ python -m pytest tests/
 The [web](web) folder has a static, GitHub-Pages-friendly version of the Convergence simulation:
 [**web/play.html**](web/play.html) lets you pick two starting words, two models, and an operator,
 then runs the same round-by-round simulation as `simulate_convergence.py` entirely client-side.
+Type in either word box for native HTML vocabulary suggestions, or use **Random words** to choose
+two distinct starting words. Operator radio buttons explain each scoring rule and expose its formula.
+Expand **Why these words?** for any round to see each model's top five candidates, similarities to
+both inputs, winning score margin (or tie-break), and a scatterplot of all eligible candidates with
+equal-score contours. The round table highlights agreement and links repeated pairs back to their
+earlier round; stalled games report the reason and the attempted round.
 
 There's no model inference in the browser: `export_web_embeddings.py` precomputes normalized
 embeddings for a closed ~1000-word vocabulary ([data/vocab_1000.txt](data/vocab_1000.txt)) for each
