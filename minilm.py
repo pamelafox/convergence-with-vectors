@@ -11,7 +11,7 @@ MODEL_NAMES = list(MODELS)
 DEFAULT_TEXTS = ["fire", "whale"]
 
 
-def cosine_similarities(texts: list[str], model_name: str) -> tuple[int, list[tuple[str, str, float]]]:
+def compute_similarities(texts: list[str], model_name: str) -> tuple[int, list[tuple[str, str, float]]]:
     embeddings = embed_texts(model_name, texts)
 
     pairs: list[tuple[str, str, float]] = []
@@ -42,7 +42,7 @@ def main() -> None:
 
     for model_name in MODEL_NAMES:
         console.print(f"Loading [bold]{model_name}[/bold] on CPU...")
-        dimensions, similarities = cosine_similarities(texts, model_name)
+        dimensions, similarities = compute_similarities(texts, model_name)
         short_name = model_name.rsplit("/", maxsplit=1)[-1]
         for index, (text_a, text_b, similarity) in enumerate(similarities):
             table.add_row(short_name if index == 0 else "", str(dimensions) if index == 0 else "", text_a, text_b, f"{similarity:.4f}")
