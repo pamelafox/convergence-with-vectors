@@ -4,26 +4,20 @@ from itertools import combinations
 import numpy as np
 from rich.console import Console
 from rich.table import Table
-from sentence_transformers import SentenceTransformer
 
-MODEL_NAMES = [
-    "sentence-transformers/all-MiniLM-L6-v2",
-    "sentence-transformers/all-MiniLM-L12-v2",
-]
+from embeddings import MODELS, embed_texts
+
+MODEL_NAMES = list(MODELS)
 DEFAULT_TEXTS = ["fire", "whale"]
 
 
 def cosine_similarities(texts: list[str], model_name: str) -> tuple[int, list[tuple[str, str, float]]]:
-    model = SentenceTransformer(model_name, device="cpu")
-    embeddings = model.encode(
-        texts,
-        normalize_embeddings=True,
-        convert_to_numpy=True,
-    )
+    embeddings = embed_texts(model_name, texts)
 
     pairs: list[tuple[str, str, float]] = []
     for first, second in combinations(range(len(texts)), 2):
-        similarity = float(np.dot(embeddings[first], embeddings[second]))
+        first_vector, second_vector = embeddings[first], embeddings[second]
+        similarity = float(np.dot(first_vector, second_vector) / (np.linalg.norm(first_vector) * np.linalg.norm(second_vector)))
         pairs.append((texts[first], texts[second], similarity))
 
     return embeddings.shape[1], pairs

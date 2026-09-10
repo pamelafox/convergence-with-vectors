@@ -208,7 +208,6 @@ python -m pytest tests/
 | [index.html](index.html) | The reveal.js slides for the talk |
 | [ollama.py](ollama.py) | Computes local embeddings with Ollama |
 | [harrier.py](harrier.py) | Computes local embeddings with Microsoft Harrier |
-<<<<<<< HEAD
 | [vocab.py](vocab.py) | Vocabulary file parsing for the word-combination experiments |
 | [embeddings.py](embeddings.py) | Model registry and cached vocabulary embeddings |
 | [operators.py](operators.py) | The five word-combination operators and their scoring math |
@@ -219,9 +218,7 @@ python -m pytest tests/
 | [data/sample_vocab.txt](data/sample_vocab.txt) | Sample candidate vocabulary |
 | [data/sample_pairs.csv](data/sample_pairs.csv) | Sample word pairs for `compare_batch.py` |
 | [tests/](tests) | Focused pytest tests for the modules above |
-=======
 | [minilm.py](minilm.py) | Compares cosine similarities from two MiniLM models on CPU |
->>>>>>> origin/main
 | [slides_assets/](slides_assets) | CSS and images used by the slides |
 | [http/](http) | Sample embeddings requests for the VS Code REST Client extension |
 | [AGENTS.md](AGENTS.md) | Context and conventions for AI coding agents |
