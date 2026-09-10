@@ -101,7 +101,8 @@ def get_vocab_embeddings(
     if npz_path.exists() and meta_path.exists():
         meta = json.loads(meta_path.read_text(encoding="utf-8"))
         if meta.get("words") == words and meta.get("model") == model_name:
-            vectors = np.load(npz_path)["vectors"]
+            with np.load(npz_path) as data:
+                vectors = data["vectors"]
             return VocabEmbeddings(words=words, vectors=vectors, index={w: i for i, w in enumerate(words)})
 
     vectors = embed_texts(model_name, words)

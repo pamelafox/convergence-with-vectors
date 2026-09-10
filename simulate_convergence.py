@@ -68,7 +68,7 @@ def simulate_convergence(
     Returns:
         A tuple of ``(path, outcome, report_rows)`` where ``path`` is a list of
         per-round dicts (``round``, ``pair_in``, ``outputs``, ``pair_out``),
-        ``outcome`` is one of "converged", "loop", or "round_limit", and
+        ``outcome`` is one of "converged", "loop", "stalled", or "round_limit", and
         ``report_rows`` holds every ranked candidate seen along the way.
     """
     models = models or list(MODELS.keys())[:2]

@@ -165,8 +165,8 @@ python compare_batch.py --vocab data/sample_vocab.txt --pairs data/sample_pairs.
 ```
 
 Simulate Convergence: two models independently apply the same operator to a word pair, and their
-outputs become the next round's pair, until both models agree, a pair repeats, or a round limit is hit:
-
+outputs become the next round's pair, until both models agree, a pair repeats, no candidates remain after exclusion (stalled),
+or a round limit is hit:
 ```shell
 python simulate_convergence.py --vocab data/sample_vocab.txt --word-a fire --word-b whale --operator centroid --max-rounds 10
 ```

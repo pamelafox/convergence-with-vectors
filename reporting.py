@@ -95,7 +95,8 @@ def write_csv(rows: list[ResultRow], path: str | Path) -> None:
         writer = csv.DictWriter(fh, fieldnames=FIELDNAMES)
         writer.writeheader()
         for row in rows:
-            writer.writerow(row.as_dict())
+            record = {k: ("" if v is None else v) for k, v in row.as_dict().items()}
+            writer.writerow(record)
 
 
 def write_json(rows: list[ResultRow], path: str | Path) -> None:
