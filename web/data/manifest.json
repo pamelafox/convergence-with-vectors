@@ -1,0 +1,7 @@
+{
+  "words_count": 1008,
+  "models": [
+    "minilm-l6",
+    "minilm-l12"
+  ]
+}
