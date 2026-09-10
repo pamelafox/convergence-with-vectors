@@ -17,7 +17,8 @@ def compute_similarities(texts: list[str], model_name: str) -> tuple[int, list[t
     pairs: list[tuple[str, str, float]] = []
     for first, second in combinations(range(len(texts)), 2):
         first_vector, second_vector = embeddings[first], embeddings[second]
-        similarity = float(np.dot(first_vector, second_vector) / (np.linalg.norm(first_vector) * np.linalg.norm(second_vector)))
+        norms_product = np.linalg.norm(first_vector) * np.linalg.norm(second_vector)
+        similarity = float(np.dot(first_vector, second_vector) / norms_product)
         pairs.append((texts[first], texts[second], similarity))
 
     return embeddings.shape[1], pairs
