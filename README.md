@@ -213,6 +213,9 @@ Expand **Why these words?** for any round to see each model's top five candidate
 both inputs, winning score margin (or tie-break), and a scatterplot of all eligible candidates with
 equal-score contours. The round table highlights agreement and links repeated pairs back to their
 earlier round; stalled games report the reason and the attempted round.
+Within each model's round details, expand **What would another operator choose?** to compare all
+four operators' winners and top five candidates for that same input pair. Different winning words
+are highlighted; this comparison does not change the game or replay subsequent rounds.
 
 There's no model inference in the browser: `export_web_embeddings.py` precomputes normalized
 embeddings for a closed ~1000-word vocabulary ([data/vocab_1000.txt](data/vocab_1000.txt)) for each

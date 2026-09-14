@@ -97,6 +97,9 @@
       .loop, .loop-target {
         background: #fff2cc;
       }
+      .different-choice {
+        background: #fff2cc;
+      }
       tr:target, .round-details:target {
         outline: 3px solid #765600;
         outline-offset: -3px;
@@ -237,7 +240,7 @@
     <div id="rounds"></div>
 
     <script type="module">
-      import { applyOperator, loadModelEmbeddings, simulateConvergence } from "./convergence.js";
+      import { OPERATOR_NAMES, applyOperator, loadModelEmbeddings, simulateConvergence } from "./convergence.js";
 
       const modelSelectA = document.getElementById("model-a");
       const modelSelectB = document.getElementById("model-b");
@@ -467,9 +470,67 @@
           panel.appendChild(element("p", "Bars span −1 to 1 with a center mark at zero. Blue = first input; purple = second. Displayed values use four decimals; ranking uses nine.", "note"));
           const allCandidates = applyOperator(operator, model, ...step.pairIn, { topK: model.words.length, exclude: new Set(step.pairIn) });
           panel.appendChild(scatterplot(allCandidates, step.pairIn, operator, model.model));
+          const comparison = element("details");
+          comparison.appendChild(element("summary", "What would another operator choose?"));
+          comparison.addEventListener("toggle", () => {
+            if (comparison.open && comparison.children.length === 1) {
+              comparison.appendChild(renderOperatorComparison(step, operator, model, candidates[0].candidate));
+            }
+          });
+          panel.appendChild(comparison);
           panels.appendChild(panel);
         }
         return panels;
+      }
+
+      function renderOperatorComparison(step, playedOperator, model, playedWinner) {
+        const content = element("div");
+        content.appendChild(element("p",
+          `Compare operators for "${step.pairIn[0]}" / "${step.pairIn[1]}" using ${model.model}. ` +
+          "All use the same vocabulary and exclude the current input words. This does not replay or change the game: " +
+          "a different choice would change the inputs to later rounds. To replay, select an operator above and press Play.",
+          "note"
+        ));
+        const scroll = element("div", undefined, "table-scroll");
+        const table = element("table");
+        table.appendChild(element("caption", `Operator comparison — round ${step.round}, ${model.model}`));
+        const head = element("thead");
+        const header = element("tr");
+        for (const title of ["Operator", "Winner", "Winning score", "Compared with played choice", "Top candidates (best first)"]) {
+          const th = element("th", title);
+          th.scope = "col";
+          header.appendChild(th);
+        }
+        head.appendChild(header);
+        table.appendChild(head);
+        const body = element("tbody");
+        for (const operator of OPERATOR_NAMES) {
+          const candidates = applyOperator(operator, model, ...step.pairIn, { topK: 5, exclude: new Set(step.pairIn) });
+          const winner = candidates[0];
+          const row = element("tr");
+          const played = operator === playedOperator;
+          const changed = winner.candidate !== playedWinner;
+          if (played) row.className = "winner";
+          else if (changed) row.className = "different-choice";
+          addCell(row, operator.replaceAll("_", " ") + (played ? " (played)" : ""));
+          addCell(row, winner.candidate);
+          addCell(row, winner.score.toFixed(4));
+          addCell(row, played ? "Played choice" : changed ? "Different word" : "Same word");
+          const list = element("ol");
+          for (const candidate of candidates) list.appendChild(element("li", candidate.candidate));
+          addCell(row, "").appendChild(list);
+          body.appendChild(row);
+        }
+        table.appendChild(body);
+        scroll.appendChild(table);
+        content.appendChild(scroll);
+        content.appendChild(element("p",
+          "Compare choices and rankings, not score magnitudes across operators: their scales differ. " +
+          "Centroid and mean have equivalent rankings apart from numerical rounding near ties. " +
+          "Green marks the played operator; yellow marks a different winning word.",
+          "note"
+        ));
+        return content;
       }
 
       function renderPath(result, operator, models) {
