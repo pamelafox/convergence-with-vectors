@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Play Convergence | Convergence in vector space</title>
     <link rel="stylesheet" href="../slides_assets/slides.css" />
+    <link rel="stylesheet" href="./play-party.css" />
     <style>
       body {
         font-family: "Work Sans", sans-serif;
@@ -151,6 +152,106 @@
     </style>
   </head>
   <body>
+    <header class="page-header">
+      <a class="eyebrow" href="../index.html">Convergence in vector space</a>
+      <nav class="mode-switch" aria-label="Choose a game view">
+        <button class="mode-button active" type="button" data-mode="party" aria-controls="party-view" aria-selected="true">
+          🎉 Game night
+        </button>
+        <button class="mode-button" type="button" data-mode="lab" aria-controls="lab-view" aria-selected="false">
+          🔬 Vector lab
+        </button>
+      </nav>
+    </header>
+
+    <main id="party-view" class="mode-view">
+      <section class="party-intro">
+        <p class="party-kicker">Two models. One shared thought.</p>
+        <h1>Can the models read each other’s minds?</h1>
+        <p>
+          Two embedding models start with random words, then race toward the word in the middle.
+          Every round begins the only proper way: with a dramatic countdown.
+        </p>
+      </section>
+
+      <section class="party-controls" aria-label="Game controls">
+        <button id="party-play" class="party-play-button" type="button" disabled>
+          <span aria-hidden="true">▶</span> Start with random words
+        </button>
+        <button id="party-skip" class="party-skip-button" type="button" hidden>Skip to the result</button>
+        <p id="party-loading" role="status">Warming up the models…</p>
+      </section>
+
+      <section class="game-stage" aria-labelledby="party-stage-title">
+        <h2 id="party-stage-title" class="visually-hidden">The Convergence game circle</h2>
+        <div id="party-arena" class="party-arena">
+          <div class="model-person seat-1" aria-hidden="true">
+            <span class="bot-head"><span class="bot-eyes"></span></span>
+            <span class="seat-label" data-seat-label>Model</span>
+          </div>
+          <div class="model-person seat-2" aria-hidden="true">
+            <span class="bot-head"><span class="bot-eyes"></span></span>
+            <span class="seat-label" data-seat-label>Model</span>
+          </div>
+          <div id="party-player-b" class="model-person active-player seat-3">
+            <span id="party-bubble-b" class="speech-bubble right-bubble">Ready!</span>
+            <span class="bot-head"><span class="bot-eyes"></span></span>
+            <span id="party-model-b" class="seat-label">Model B</span>
+          </div>
+          <div class="model-person seat-4" aria-hidden="true">
+            <span class="bot-head"><span class="bot-eyes"></span></span>
+            <span class="seat-label" data-seat-label>Model</span>
+          </div>
+          <div class="model-person seat-5" aria-hidden="true">
+            <span class="bot-head"><span class="bot-eyes"></span></span>
+            <span class="seat-label" data-seat-label>Model</span>
+          </div>
+          <div class="model-person seat-6" aria-hidden="true">
+            <span class="bot-head"><span class="bot-eyes"></span></span>
+            <span class="seat-label" data-seat-label>Model</span>
+          </div>
+          <div id="party-player-a" class="model-person active-player seat-7">
+            <span id="party-bubble-a" class="speech-bubble left-bubble">Ready!</span>
+            <span class="bot-head"><span class="bot-eyes"></span></span>
+            <span id="party-model-a" class="seat-label">Model A</span>
+          </div>
+          <div class="model-person seat-8" aria-hidden="true">
+            <span class="bot-head"><span class="bot-eyes"></span></span>
+            <span class="seat-label" data-seat-label>Model</span>
+          </div>
+
+          <div class="arena-center">
+            <p id="party-round" class="round-label">Game night</p>
+            <div id="party-countdown" class="countdown-number" aria-hidden="true">★</div>
+            <p id="party-prompt" class="round-prompt">Press start and gather around.</p>
+          </div>
+          <div id="party-confetti" class="confetti-layer" aria-hidden="true"></div>
+        </div>
+
+        <p id="party-announcer" class="party-announcer" aria-live="polite">
+          The models are taking their places in the circle.
+        </p>
+        <p class="party-explainer">
+          Both players use the <strong>centroid</strong> rule: each picks the vocabulary word nearest
+          to the midpoint of the current pair. The crowd represents more instances cheering them on.
+        </p>
+      </section>
+
+      <section class="party-history-section" aria-labelledby="party-history-title">
+        <div class="history-heading">
+          <div>
+            <p class="party-kicker">Round by round</p>
+            <h2 id="party-history-title">The shout history</h2>
+          </div>
+          <span id="party-outcome" class="outcome-pill">Waiting to play</span>
+        </div>
+        <ol id="party-history" class="party-history">
+          <li class="empty-history">Words will appear here as the models shout them.</li>
+        </ol>
+      </section>
+    </main>
+
+    <main id="lab-view" class="mode-view lab-view" hidden>
     <h1>Play Convergence with embeddings</h1>
     <p>
       Pick two starting words and two "player" models. Each model independently applies the chosen
@@ -238,7 +339,9 @@
     </table>
     </div>
     <div id="rounds"></div>
+    </main>
 
+    <script type="module" src="./play-party.js"></script>
     <script type="module">
       import { OPERATOR_NAMES, applyOperator, loadModelEmbeddings, simulateConvergence } from "./convergence.js";
 
