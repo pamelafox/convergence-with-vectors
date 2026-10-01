@@ -1,3 +1,28 @@
+[project]
+name = "convergence-with-vectors"
+version = "0.1.0"
+description = "Slides and code for the PyBay talk 'Convergence in vector space'"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "openai",
+    "python-dotenv",
+    "rich",
+    "numpy",
+    "sentence-transformers",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit",
+    "ruff",
+    "black",
+    "pytest",
+]
+
+[tool.uv]
+package = false
+
 [tool.ruff]
 line-length = 200
 target-version = "py311"

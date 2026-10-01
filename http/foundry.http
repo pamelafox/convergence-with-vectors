@@ -1,0 +1,8 @@
+POST {{$processEnv AZURE_OPENAI_ENDPOINT}}/openai/v1/embeddings
+Authorization: Bearer {{$processEnv AZURE_OPENAI_TOKEN}}
+Content-Type: application/json
+
+{
+    "model": "text-embedding-3-small",
+    "input": ["fire", "whale"]
+}

@@ -29,8 +29,8 @@ stuck, and which make weird choices.
 | `index.html` | reveal.js slides, a single HTML file |
 | `slides_assets/` | CSS and images for the slides |
 | `http/` | Sample embeddings requests for the VS Code REST Client extension |
-| `requirements.txt` | Runtime dependencies |
-| `requirements-dev.txt` | Lint/format tooling, includes `requirements.txt` |
+| `pyproject.toml` | Runtime dependencies, `dev` dependency group, and ruff/black config |
+| `uv.lock` | Locked dependency versions managed by uv |
 
 Python game code lives in top-level modules named after what they demonstrate,
 following the style of the previous talk's repository (for example `example.py`, `convergence.py`).
@@ -38,9 +38,10 @@ following the style of the previous talk's repository (for example `example.py`,
 ## Environment
 
 * Python 3.11 (matches the dev container and the CI workflow).
-* Install runtime dependencies with `python -m pip install -r requirements.txt`.
-* Install dev dependencies with `python -m pip install -r requirements-dev.txt`.
-* Embedding models come from GitHub Models (needs `GITHUB_TOKEN`), Ollama (local), and
+* Manage dependencies with [uv](https://docs.astral.sh/uv/): `uv sync` installs runtime and dev dependencies into `.venv`.
+* Add dependencies with `uv add <pkg>` (or `uv add --dev <pkg>`), which updates `pyproject.toml` and `uv.lock`.
+* Run scripts and tools with `uv run`, e.g. `uv run compare_pair.py ...`.
+* Embedding models come from Microsoft Foundry (needs `AZURE_OPENAI_ENDPOINT` and Entra auth), Ollama (local), and
   `sentence-transformers` (downloaded from Hugging Face).
 
 ## Conventions
@@ -49,14 +50,14 @@ following the style of the previous talk's repository (for example `example.py`,
 * Run the same checks CI runs before committing:
 
     ```shell
-    ruff check .
-    black . --check
+    uv run ruff check .
+    uv run black . --check
     ```
 
   or run `pre-commit run --all-files` if pre-commit is installed.
 * Scripts are demo code for a live talk: keep them short, readable, and runnable top-to-bottom,
   and print results with `rich` where it helps the audience.
-* Access models through the `openai` client library (both GitHub Models and Ollama expose
+* Access models through the `openai` client library (both Foundry and Ollama expose
   OpenAI-compatible endpoints) or through `sentence-transformers` for local models.
 * Never hardcode secrets; read tokens from environment variables, optionally loaded via `python-dotenv`.
 * There is no test suite in this repository; verify changes by running the scripts.

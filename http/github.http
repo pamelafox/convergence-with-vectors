@@ -1,8 +1,0 @@
-POST https://models.github.ai/inference/embeddings
-Authorization: ****** GITHUB_TOKEN}}
-Content-Type: application/json
-
-{
-    "model": "openai/text-embedding-3-small",
-    "input": ["fire", "whale"]
-}

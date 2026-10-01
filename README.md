@@ -55,38 +55,43 @@ python -m http.server 8000
 If you open this up in a VS Code Dev Container or GitHub Codespaces, everything will be set up for you.
 If not, follow these steps:
 
-1. Set up a Python 3.11 (or higher) virtual environment and activate it.
+1. Install [uv](https://docs.astral.sh/uv/getting-started/installation/).
 
-2. Install the required packages:
-
-    ```shell
-    python -m pip install -r requirements.txt
-    ```
-
-3. For local development (linting and formatting), install the dev packages and pre-commit hooks:
+2. Create the virtual environment and install the packages (including dev tools) from `uv.lock`:
 
     ```shell
-    python -m pip install -r requirements-dev.txt
-    pre-commit install
+    uv sync
     ```
+
+3. For local development (linting and formatting), install the pre-commit hooks:
+
+    ```shell
+    uv run pre-commit install
+    ```
+
+The commands below use `uv run`, which runs inside the project's virtual environment.
+Alternatively, activate it with `source .venv/bin/activate` and drop the `uv run` prefix.
 
 ## Using embedding models
 
 The talk compares embedding models from multiple sources:
 
 | Source | Example models | Setup |
-|--------|----------------|-------|
-| [GitHub Models](https://github.com/marketplace/models) | `openai/text-embedding-3-small`, `cohere/cohere-embed-v3-english` | Requires a `GITHUB_TOKEN` environment variable |
+| -------- | ---------------- | ------- |
+| [Microsoft Foundry](https://ai.azure.com/) | `text-embedding-3-small`, `text-embedding-3-large` | Requires a Foundry resource with a deployed embedding model |
 | [Ollama](https://ollama.com/) | `nomic-embed-text`, `mxbai-embed-large` | Requires Ollama installed locally, then `ollama pull <model>` |
 | [sentence-transformers](https://sbert.net/) | `all-MiniLM-L6-v2`, `all-mpnet-base-v2`, `microsoft/harrier-oss-v1-270m` | Downloads models from Hugging Face on first use |
 
-To use GitHub Models, you need a `GITHUB_TOKEN` environment variable that stores a GitHub personal access token.
-If you're running this inside a GitHub Codespace, the token is automatically available.
-If not, generate a new [personal access token](https://github.com/settings/tokens) and run:
+To use Foundry models, deploy an embedding model (named after the model, like `text-embedding-3-small`)
+in a Foundry resource, then set the endpoint and a Microsoft Entra access token:
 
 ```shell
-export GITHUB_TOKEN="your-github-token-goes-here"
+az login
+export AZURE_OPENAI_ENDPOINT="https://your-resource-name.openai.azure.com"
+export AZURE_OPENAI_TOKEN=$(az account get-access-token --resource https://cognitiveservices.azure.com --query accessToken -o tsv)
 ```
+
+Your account needs the "Cognitive Services OpenAI User" role on the Foundry resource.
 
 To use Ollama models, pull the embedding model first:
 
@@ -97,7 +102,7 @@ ollama pull nomic-embed-text
 Then compute normalized embeddings with the local model:
 
 ```shell
-python ollama.py fire whale
+uv run ollama.py fire whale
 ```
 
 Pass `--model` to use another locally installed Ollama embedding model.
@@ -106,7 +111,7 @@ To compute normalized embeddings locally with Microsoft's 270-million-parameter
 [Harrier](https://huggingface.co/microsoft/harrier-oss-v1-270m) model, run:
 
 ```shell
-python harrier.py fire whale
+uv run harrier.py fire whale
 ```
 
 The model is downloaded from Hugging Face the first time the script runs.
@@ -117,13 +122,13 @@ and [`all-MiniLM-L12-v2`](https://huggingface.co/sentence-transformers/all-MiniL
 models, run:
 
 ```shell
-python minilm.py fire whale
+uv run minilm.py fire whale
 ```
 
 You can pass more than two texts to compare every pair. Both models are downloaded from
 Hugging Face on first use and explicitly run on CPU.
 
-The [http](http) folder contains sample REST Client requests for the GitHub Models and Ollama
+The [http](http) folder contains sample REST Client requests for the Foundry and Ollama
 embeddings endpoints, which are a quick way to check that your setup works.
 
 ## Comparing word-combination operators
@@ -144,7 +149,7 @@ The two MiniLM models are downloaded from Hugging Face the first time they're us
 All embeddings are L2-normalized, so cosine similarity is a plain dot product.
 
 | Operator | Definition |
-|----------|------------|
+| ---------- | ------------ |
 | `centroid` | Nearest vocabulary word to `normalize(embed(a) + embed(b))`. |
 | `balanced` | For each candidate `w`: `min(cos(w, a), cos(w, b))` — rewards being close to *both* inputs. |
 | `mean` | For each candidate `w`: `(cos(w, a) + cos(w, b)) / 2`. |
@@ -156,20 +161,21 @@ All embeddings are L2-normalized, so cosine similarity is a plain dot product.
 Compare all operators for one word pair:
 
 ```shell
-python compare_pair.py --vocab data/sample_vocab.txt --word-a snow --word-b mountain --top-k 10
+uv run compare_pair.py --vocab data/sample_vocab.txt --word-a snow --word-b mountain --top-k 10
 ```
 
 Run a batch of word pairs from a CSV file (columns `word_a`, `word_b`):
 
 ```shell
-python compare_batch.py --vocab data/sample_vocab.txt --pairs data/sample_pairs.csv --output-csv batch_results.csv
+uv run compare_batch.py --vocab data/sample_vocab.txt --pairs data/sample_pairs.csv --output-csv batch_results.csv
 ```
 
 Simulate Convergence: two models independently apply the same operator to a word pair, and their
 outputs become the next round's pair, until both models agree, a pair repeats, no candidates remain after exclusion (stalled),
 or a round limit is hit:
+
 ```shell
-python simulate_convergence.py --vocab data/sample_vocab.txt --word-a fire --word-b whale --operator centroid --max-rounds 10
+uv run simulate_convergence.py --vocab data/sample_vocab.txt --word-a fire --word-b whale --operator centroid --max-rounds 10
 ```
 
 All three scripts accept `--models` (defaults to both MiniLM models), `--include-inputs` (to allow
@@ -199,7 +205,7 @@ the convergence simulation's control flow (using small synthetic vectors so no m
 required):
 
 ```shell
-python -m pytest tests/
+uv run pytest tests/
 ```
 
 ## Playing Convergence in the browser
@@ -221,6 +227,11 @@ Within each model's round details, expand **What would another operator choose?*
 four operators' winners and top five candidates for that same input pair. Different winning words
 are highlighted; this comparison does not change the game or replay subsequent rounds.
 
+[**web/operators.html**](web/operators.html) is a visual explainer for the operators' math. It plots
+every vocabulary word by its similarity to each input word, shades the plane by each operator's score,
+and draws the lines of equal score. It also has sliders to score a made-up candidate, a 2D diagram
+showing why centroid and mean rank words the same way, and a side-by-side table of each operator's top 5.
+
 There's no model inference in the browser: `export_web_embeddings.py` precomputes normalized
 embeddings for a closed ~1000-word vocabulary ([data/vocab_1000.txt](data/vocab_1000.txt)) for each
 model and writes them to JSON files under `web/data/`, which the page simply fetches. Because of
@@ -231,7 +242,7 @@ operator, which needs to embed an arbitrary phrase at request time, isn't availa
 To regenerate the JSON files after changing the vocabulary or model list:
 
 ```shell
-python export_web_embeddings.py --vocab data/vocab_1000.txt --output-dir web/data
+uv run export_web_embeddings.py --vocab data/vocab_1000.txt --output-dir web/data
 ```
 
 To try it locally, run a static server from the repo root and open `web/play.html`:
@@ -243,7 +254,7 @@ python -m http.server 8000
 ## Repository structure
 
 | Path | Purpose |
-|------|---------|
+| ------ | --------- |
 | [index.html](index.html) | The reveal.js slides for the talk |
 | [ollama.py](ollama.py) | Computes local embeddings with Ollama |
 | [harrier.py](harrier.py) | Computes local embeddings with Microsoft Harrier |
