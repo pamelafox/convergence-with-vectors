@@ -207,6 +207,10 @@ python -m pytest tests/
 The [web](web) folder has a static, GitHub-Pages-friendly version of the Convergence simulation:
 [**web/play.html**](web/play.html) lets you pick two starting words, two models, and an operator,
 then runs the same round-by-round simulation as `simulate_convergence.py` entirely client-side.
+The page opens in **Game night** mode, an animated, model-filled game circle that counts down before
+each simultaneous shout, starts from a random pair, and celebrates convergence with confetti.
+Switch to **Vector lab** on the same page to keep using the full controls and detailed score,
+candidate, contour, and operator-comparison views described below.
 Type in either word box for native HTML vocabulary suggestions, or use **Random words** to choose
 two distinct starting words. Operator radio buttons explain each scoring rule and expose its formula.
 Expand **Why these words?** for any round to see each model's top five candidates, similarities to
