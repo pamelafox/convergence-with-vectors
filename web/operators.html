@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>How the operators work | Convergence in vector space</title>
     <link rel="stylesheet" href="../slides_assets/slides.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
     <style>
       body {
         font-family: "Work Sans", sans-serif;
@@ -44,45 +52,10 @@
         color: #b00020;
         min-height: 1.5rem;
       }
-      .layout {
-        display: grid;
-        grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-        gap: 1.5rem;
-        align-items: start;
-      }
-      @media (max-width: 800px) {
-        .layout {
-          grid-template-columns: 1fr;
-        }
-      }
       svg {
         display: block;
         width: 100%;
         height: auto;
-      }
-      .op-tabs {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin: 1rem 0;
-      }
-      .op-tabs label {
-        font-weight: 600;
-        border: 1px solid #1766a0;
-        border-radius: 999px;
-        padding: 0.3rem 0.9rem;
-        cursor: pointer;
-      }
-      .op-tabs input {
-        position: absolute;
-        opacity: 0;
-      }
-      .op-tabs label:has(input:checked) {
-        background: #1766a0;
-        color: #fff;
-      }
-      .op-tabs label:has(input:focus-visible) {
-        outline: 3px solid #765600;
       }
       .formula {
         font-family: "Roboto Mono", monospace;
@@ -112,57 +85,81 @@
       .table-scroll {
         overflow-x: auto;
       }
-      .sliders {
-        display: grid;
-        grid-template-columns: auto 1fr 3.5rem;
-        gap: 0.5rem 1rem;
-        align-items: center;
-      }
-      .sliders input {
-        width: 100%;
-      }
-      .presets button {
-        font-size: 0.9rem;
-        padding: 0.3rem 0.7rem;
-        margin: 0.5rem 0.5rem 0 0;
-        cursor: pointer;
-      }
-      .bars {
-        display: grid;
-        grid-template-columns: 9rem 1fr 3.5rem;
-        gap: 0.4rem 1rem;
-        align-items: center;
-        margin-top: 1rem;
-        font-variant-numeric: tabular-nums;
-      }
-      .bar-track {
-        position: relative;
-        height: 1rem;
-        background: #eee;
-      }
-      .bar-track::after {
-        content: "";
-        position: absolute;
-        left: 50%;
-        top: -3px;
-        height: calc(100% + 6px);
-        border-left: 1px solid #444;
-      }
-      .bar {
-        position: absolute;
-        height: 100%;
-        background: #1766a0;
-      }
       .note {
         font-size: 0.9rem;
         color: #444;
       }
-      .legend-swatch {
-        display: inline-block;
-        width: 0.8rem;
-        height: 0.8rem;
-        vertical-align: middle;
-        margin-right: 0.3rem;
+      .dome-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 2rem;
+        align-items: center;
+        margin-bottom: 0.75rem;
+      }
+      .dome-controls label {
+        display: inline-flex;
+        gap: 0.4rem;
+        align-items: center;
+      }
+      .dome-controls [hidden] {
+        display: none;
+      }
+      .circle-controls {
+        margin-bottom: 0.75rem;
+      }
+      .circle-controls input[type="range"] {
+        width: 100%;
+        margin: 0.3rem 0 0;
+      }
+      .tick-labels {
+        display: flex;
+        justify-content: space-between;
+        /* Labels are 2.5em wide; offset by half that, minus half the slider thumb, so each centers on its tick */
+        margin: 0 calc(8px - 1.25em);
+        font-size: 0.8rem;
+        color: #555;
+      }
+      .tick-labels span {
+        width: 2.5em;
+        text-align: center;
+      }
+      .tick-labels span::before {
+        content: "";
+        display: block;
+        width: 1px;
+        height: 6px;
+        background: #888;
+        margin: 0 auto 2px;
+      }
+      .dome {
+        position: relative;
+        width: 100%;
+        border: 1px solid #ddd;
+        cursor: grab;
+      }
+      .dome canvas {
+        display: block;
+      }
+      .dome-labels {
+        position: absolute;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+      }
+      .dome-label {
+        font: 600 12px "Work Sans", sans-serif;
+        background: rgba(255, 255, 255, 0.85);
+        padding: 0 3px;
+        border-radius: 3px;
+      }
+      .dome-tooltip {
+        position: absolute;
+        pointer-events: none;
+        background: #222;
+        color: #fff;
+        font-size: 12px;
+        padding: 2px 6px;
+        border-radius: 3px;
       }
     </style>
   </head>
@@ -193,112 +190,96 @@
     <datalist id="vocab"></datalist>
     <p id="error" role="alert"></p>
 
-    <h2>1. Every word becomes a point</h2>
+    <h2>1. Centroid: the smallest angle to the midpoint</h2>
     <p>
-      Below, each dot is one vocabulary word, placed by its similarity to A (x-axis) and to B (y-axis).
-      Words in the <strong>upper right</strong> are close to both. Words near an axis are close to only one.
-      The background color is the operator's score at each spot (darker means higher), and the gray lines connect points with equal scores.
-      The <strong>bold red line</strong> passes through the winner: no other word sits beyond it.
+      The real vectors have hundreds of dimensions, but any two arrows from the same point always lie in a single flat plane.
+      The floor of this picture is that plane, holding <var>a</var>, <var>b</var> and their midpoint <var>ĉ</var> at their real angles.
+      Every other word has part of its vector in the plane and part sticking out of it. That hidden part becomes height here.
+      Every vector has length 1, so every word lands on the surface of a <strong>dome</strong> of radius 1.
+      Words high up on the dome are mostly unrelated to both inputs.
     </p>
-    <fieldset class="op-tabs" aria-label="Operator">
-      <label><input type="radio" name="op" value="centroid" checked />centroid</label>
-      <label><input type="radio" name="op" value="mean" />mean</label>
-      <label><input type="radio" name="op" value="balanced" />balanced</label>
-      <label><input type="radio" name="op" value="geometric_mean" />geometric_mean</label>
-    </fieldset>
-    <div class="layout">
-      <figure>
-        <svg id="plane" viewBox="0 0 560 560" role="img" aria-labelledby="plane-desc"></svg>
-        <figcaption id="plane-desc" class="note">
-          <span class="legend-swatch" style="background: #d1495b"></span>top 5 for this operator
-          <span class="legend-swatch" style="border: 2px solid #e09f3e; border-radius: 50%; margin-left: 1rem"></span>slider point (section 2).
-          Hover over a dot to see the word.
-        </figcaption>
-      </figure>
-      <div>
-        <h3 id="op-title"></h3>
-        <p id="op-shape"></p>
-        <p><strong>Winner, worked out:</strong></p>
-        <div id="op-worked" class="formula"></div>
-        <div class="table-scroll" style="margin-top: 1rem">
-          <table>
-            <thead>
-              <tr><th>#</th><th>word</th><th>s<sub>a</sub></th><th>s<sub>b</sub></th><th>score</th></tr>
-            </thead>
-            <tbody id="op-top"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <h2>2. Try your own numbers</h2>
     <p>
-      Pretend a candidate word has these two similarities, and see how each operator scores it.
-      The orange ring on the plot above moves with the sliders.
+      Drag to rotate, scroll to zoom, and hover over a dot to see its word. The dome is shaded by score: darker means higher.
+      The top words are drawn as colored arrows, with a dashed line showing each one's hidden part.
     </p>
-    <div class="layout">
-      <div>
-        <div class="sliders">
-          <label for="slider-a">s<sub>a</sub></label>
-          <input id="slider-a" type="range" min="-1" max="1" step="0.01" value="0.8" />
-          <output id="slider-a-out" for="slider-a"></output>
-          <label for="slider-b">s<sub>b</sub></label>
-          <input id="slider-b" type="range" min="-1" max="1" step="0.01" value="0.1" />
-          <output id="slider-b-out" for="slider-b"></output>
-        </div>
-        <div class="presets">
-          <button type="button" data-a="0.8" data-b="0.1">One-sided (0.80, 0.10)</button>
-          <button type="button" data-a="0.4" data-b="0.4">Even (0.40, 0.40)</button>
-          <button type="button" data-a="0.6" data-b="-0.2">Opposed to B (0.60, −0.20)</button>
-          <button type="button" data-a="-0.3" data-b="-0.3">Unrelated to both (−0.30, −0.30)</button>
-        </div>
-        <div id="bars" class="bars"></div>
-      </div>
-      <div class="note">
-        <p>
-          <strong>Mean</strong> lets a big similarity make up for a small one.
-          <strong>Balanced</strong> only counts the weaker one, so a word has to relate to both inputs.
-          <strong>Geometric mean</strong> is in between: lopsided pairs are penalized, but the stronger side still counts.
-        </p>
-        <p>When both numbers are non-negative, balanced ≤ geometric mean ≤ mean, and all three are equal only when s<sub>a</sub> = s<sub>b</sub>.</p>
-        <p>
-          Geometric mean sets negative similarities to 0 before multiplying. Without that, a word unrelated to both inputs
-          (−0.3 × −0.3 = +0.09) would get a positive score.
-        </p>
-      </div>
+    <div class="dome-controls">
+      <label><input type="checkbox" id="centroid-show-angles" checked />Angle to ĉ</label>
+      <label><input type="checkbox" id="centroid-show-drops" checked />Dashed lines (hidden part)</label>
+      <label for="centroid-top-n">Top <output id="centroid-top-n-out" for="centroid-top-n">3</output> words</label>
+      <input type="range" id="centroid-top-n" min="1" max="10" value="3" />
     </div>
+    <div id="centroid-dome" class="dome" role="img" aria-label="Rotatable 3D dome for the centroid operator"></div>
+    <p id="centroid-dome-status" class="note">Loading three.js…</p>
+    <figure id="protractor-figure">
+      <svg id="protractor" viewBox="0 0 560 290" role="img" aria-labelledby="protractor-desc"></svg>
+      <figcaption id="protractor-desc" class="note">
+        The same angles drawn flat, all measured from <var>ĉ</var>, so they can be compared without perspective.
+      </figcaption>
+    </figure>
+    <p>
+      Centroid adds the two vectors and rescales the sum to length 1 to get <var>ĉ</var>.
+      <strong>The word with the smallest angle to <var>ĉ</var> wins</strong>.
+      The arcs near the origin mark each top word's angle to <var>ĉ</var>. The score is the cosine of that angle.
+    </p>
+    <p>Because every vector has length 1, the dot product splits into two parts:</p>
+    <p class="formula">cos(w, ĉ) = w·(a + b) / ‖a + b‖ = (s<sub>a</sub> + s<sub>b</sub>) / ‖a + b‖</p>
+    <p><var>‖a + b‖</var> depends only on A and B, so it is the <em>same number for every candidate</em>:</p>
+    <p id="centroid-norm" class="formula"></p>
+    <p>
+      So centroid ranks words by s<sub>a</sub> + s<sub>b</sub>: losing 0.1 of similarity to one input is made up by gaining 0.1 to the other.
+      That's why a word that leans heavily toward one input, like a near-synonym, can still win.
+    </p>
 
-    <h2>3. Why centroid ranks words the same way as mean</h2>
-    <div class="layout">
-      <figure>
-        <svg id="centroid-diagram" viewBox="0 0 320 300" role="img" aria-labelledby="centroid-desc"></svg>
-        <figcaption id="centroid-desc" class="note">
-          The flat plane containing <var>a</var> and <var>b</var>, drawn at their real angle for this model.
-          The real vectors have hundreds of dimensions, but two vectors always lie in a single plane.
-        </figcaption>
-      </figure>
-      <div>
-        <p>
-          Centroid adds the two vectors, rescales the sum to length 1 to get <var>ĉ</var>, and finds the word closest to <var>ĉ</var>.
-          Because every vector has length 1, the dot product splits into two parts:
-        </p>
-        <p class="formula">cos(w, ĉ) = w·(a + b) / ‖a + b‖ = (s<sub>a</sub> + s<sub>b</sub>) / ‖a + b‖</p>
-        <p>
-          <var>‖a + b‖</var> depends only on A and B, so it is the <em>same number for every candidate</em>:
-        </p>
-        <p id="centroid-norm" class="formula"></p>
-        <p>
-          Dividing every score by the same number doesn't change which word wins, so centroid and mean always pick the
-          same words. The only difference is the scale: on the plot, both operators have straight diagonal lines of equal score.
-        </p>
+    <h2>2. Balanced: inside both circles first</h2>
+    <p>
+      Balanced only gives a word a score of <var>L</var> if it is at least that similar to <var>a</var> <em>and</em> to <var>b</var>.
+      On the same dome, "at least that similar to <var>a</var>" means "inside a circle around <var>a</var>".
+      Drag the <strong>Circles</strong> slider to grow a circle around <var>a</var> and one around <var>b</var> at the same rate.
+      Only the words inside both circles are highlighted. <strong>The first word inside both circles wins</strong>, and the slider starts at exactly that size.
+    </p>
+    <div class="dome-controls">
+      <label><input type="checkbox" id="balanced-show-angles" checked />Angles to a and b</label>
+      <label><input type="checkbox" id="balanced-show-drops" checked />Dashed lines (hidden part)</label>
+    </div>
+    <div class="circle-controls">
+      <label for="circle-angle">Circles: within <output id="circle-angle-out" for="circle-angle"></output>° of each input</label>
+      <input type="range" id="circle-angle" min="0" max="90" step="any" value="60" list="circle-ticks" />
+      <datalist id="circle-ticks">
+        <option value="0"></option><option value="10"></option><option value="20"></option><option value="30"></option><option value="40"></option>
+        <option value="50"></option><option value="60"></option><option value="70"></option><option value="80"></option><option value="90"></option>
+      </datalist>
+      <div class="tick-labels" aria-hidden="true">
+        <span>0°</span><span>10°</span><span>20°</span><span>30°</span><span>40°</span><span>50°</span><span>60°</span><span>70°</span><span>80°</span><span>90°</span>
       </div>
     </div>
+    <div id="balanced-dome" class="dome" role="img" aria-label="Rotatable 3D dome for the balanced operator"></div>
+    <p id="balanced-dome-status" class="note">Loading three.js…</p>
+    <p>A dot close to only one input never gets inside the other circle, however close it is to that one input.</p>
+    <p>
+      The arcs show each highlighted word's angle to <var>a</var> and to <var>b</var>. The larger angle (thick arc) is the word's weaker side, and it sets the score.
+      The smaller one (thin arc) only has to stay below it, and how far below doesn't matter.
+    </p>
+
+    <h2>3. Geometric mean: the biggest rectangle</h2>
+    <p>
+      Geometric mean multiplies the two similarities and takes the square root: √(s<sub>a</sub> · s<sub>b</sub>).
+      Picture a rectangle that is s<sub>a</sub> wide and s<sub>b</sub> tall. The geometric mean is the side of the <strong>square with the same area</strong>.
+    </p>
+    <figure>
+      <svg id="rectangles" viewBox="0 0 680 230" role="img" aria-labelledby="rectangles-desc"></svg>
+      <figcaption id="rectangles-desc" class="note">
+        Each top word's rectangle (similarity to a wide, similarity to b tall) and the dashed square with the same area.
+        The square's side is the geometric mean. Negative similarities count as 0.
+      </figcaption>
+    </figure>
+    <p>
+      A long, thin rectangle (close to one input, far from the other) has a small area even with one long side.
+      So a word can lean toward one input, but losing half its similarity on one side takes doubling the other side to make up for it.
+      That's in between centroid, where any loss can be made up by an equal gain, and balanced, where nothing makes up for the weaker side.
+    </p>
 
     <h2>4. All operators side by side</h2>
-    <p>
-      The top 5 for each operator for this pair. Highlighted cells are where an operator's choice differs from mean.
-      The centroid and mean columns always match.
-    </p>
+    <p>The top 5 for each operator for this pair. Highlighted cells are where an operator's choice differs from centroid.</p>
     <div class="table-scroll">
       <table>
         <thead id="compare-head"></thead>
@@ -308,7 +289,7 @@
 
     <h2>What about <code>textual</code>?</h2>
     <p>
-      The fifth operator in <code>operators.py</code> skips the vector arithmetic. It embeds a phrase like
+      The fourth operator in <code>operators.py</code> skips the vector arithmetic. It embeds a phrase like
       <em>"fire and whale"</em> and finds the word closest to that phrase's vector. The transformer reads both words together,
       so it can capture a combined meaning that a plain average can't. It needs the model at run time to embed the new phrase,
       though, so it can't run on this static page. Try it with <code>uv run compare_pair.py</code> instead.
@@ -318,29 +299,9 @@
       import { applyOperator, loadModelEmbeddings } from "./convergence.js";
 
       const SVG_NS = "http://www.w3.org/2000/svg";
-      const OPS = ["centroid", "mean", "balanced", "geometric_mean"];
-      const W = 560;
-      const H = 560;
-      const M = { l: 55, r: 15, t: 15, b: 50 };
-
-      const OP_INFO = {
-        centroid: {
-          title: "centroid: nearest word to the midpoint vector",
-          shape: "Equal-score lines are straight diagonals, exactly like mean. Trading 0.1 of similarity to A for 0.1 of similarity to B leaves the score the same.",
-        },
-        mean: {
-          title: "mean: average of the two similarities",
-          shape: "Equal-score lines are straight diagonals. A word far out along one axis (close to only one input) can score as high as a word on the diagonal.",
-        },
-        balanced: {
-          title: "balanced: the smaller of the two similarities",
-          shape: "Equal-score lines are L-shaped corners on the dashed diagonal. Moving away from the diagonal gains nothing, so the winner is the word whose weaker similarity is highest.",
-        },
-        geometric_mean: {
-          title: "geometric_mean: square root of the product",
-          shape: "Equal-score lines are curves that bend toward the diagonal, between mean's straight lines and balanced's sharp corners. Lopsided words are penalized, but less harshly than with balanced.",
-        },
-      };
+      const OPS = ["centroid", "balanced", "geometric_mean"];
+      // Distinct from the blue, purple and green used for a, b and ĉ
+      const WORD_COLORS = ["#d1495b", "#e08a00", "#8c564b", "#e377c2", "#17becf", "#bcbd22", "#7b2d26", "#c9a227", "#5f6b7a", "#ff6f3c"];
 
       const els = {
         model: document.getElementById("model"),
@@ -348,20 +309,32 @@
         wordB: document.getElementById("word-b"),
         vocab: document.getElementById("vocab"),
         error: document.getElementById("error"),
-        plane: document.getElementById("plane"),
-        opTitle: document.getElementById("op-title"),
-        opShape: document.getElementById("op-shape"),
-        opWorked: document.getElementById("op-worked"),
-        opTop: document.getElementById("op-top"),
-        sliderA: document.getElementById("slider-a"),
-        sliderB: document.getElementById("slider-b"),
-        sliderAOut: document.getElementById("slider-a-out"),
-        sliderBOut: document.getElementById("slider-b-out"),
-        bars: document.getElementById("bars"),
-        centroidDiagram: document.getElementById("centroid-diagram"),
         centroidNorm: document.getElementById("centroid-norm"),
         compareHead: document.getElementById("compare-head"),
         compareBody: document.getElementById("compare-body"),
+        circleAngle: document.getElementById("circle-angle"),
+        circleAngleOut: document.getElementById("circle-angle-out"),
+        protractor: document.getElementById("protractor"),
+        protractorFigure: document.getElementById("protractor-figure"),
+        rectangles: document.getElementById("rectangles"),
+      };
+
+      // Each dome section has its own container and controls
+      const ui = {
+        centroid: {
+          dome: document.getElementById("centroid-dome"),
+          status: document.getElementById("centroid-dome-status"),
+          showAngles: document.getElementById("centroid-show-angles"),
+          showDrops: document.getElementById("centroid-show-drops"),
+          topN: document.getElementById("centroid-top-n"),
+          topNOut: document.getElementById("centroid-top-n-out"),
+        },
+        balanced: {
+          dome: document.getElementById("balanced-dome"),
+          status: document.getElementById("balanced-dome-status"),
+          showAngles: document.getElementById("balanced-show-angles"),
+          showDrops: document.getElementById("balanced-show-drops"),
+        },
       };
 
       let state = null;
@@ -387,58 +360,11 @@
         switch (op) {
           case "centroid":
             return (sa, sb) => (sa + sb) / norm;
-          case "mean":
-            return (sa, sb) => (sa + sb) / 2;
           case "balanced":
             return (sa, sb) => Math.min(sa, sb);
           case "geometric_mean":
             return (sa, sb) => Math.sqrt(Math.max(sa, 0) * Math.max(sb, 0));
         }
-      }
-
-      function workedFormula(op, sa, sb, norm) {
-        const score = scoreFn(op, norm)(sa, sb);
-        switch (op) {
-          case "centroid":
-            return `(s_a + s_b) / ‖a+b‖ = (${fmt3(sa)} + ${fmt3(sb)}) / ${fmt3(norm)} = ${fmt3(score)}`;
-          case "mean":
-            return `(s_a + s_b) / 2 = (${fmt3(sa)} + ${fmt3(sb)}) / 2 = ${fmt3(score)}`;
-          case "balanced":
-            return `min(s_a, s_b) = min(${fmt3(sa)}, ${fmt3(sb)}) = ${fmt3(score)}`;
-          case "geometric_mean":
-            return `√(max(s_a,0) · max(s_b,0)) = √(${fmt3(Math.max(sa, 0))} · ${fmt3(Math.max(sb, 0))}) = ${fmt3(score)}`;
-        }
-      }
-
-      /** Points (in similarity coordinates) along the curve where the operator's score equals `level`. */
-      function levelCurve(op, level, lo, hi, norm) {
-        const far = hi + 1;
-        const low = lo - 1;
-        switch (op) {
-          case "centroid":
-          case "mean": {
-            const total = op === "mean" ? 2 * level : level * norm;
-            return [[low, total - low], [far, total - far]];
-          }
-          case "balanced":
-            return [[level, far], [level, level], [far, level]];
-          case "geometric_mean": {
-            if (level <= 0) return [];
-            const sq = level * level;
-            const points = [];
-            const start = Math.log(sq / far);
-            const end = Math.log(far);
-            for (let i = 0; i <= 120; i++) {
-              const sa = Math.exp(start + ((end - start) * i) / 120);
-              points.push([sa, sq / sa]);
-            }
-            return points;
-          }
-        }
-      }
-
-      function selectedOp() {
-        return document.querySelector('input[name="op"]:checked').value;
       }
 
       function computeState() {
@@ -464,191 +390,390 @@
         const simA = data.vectors.map((v) => dot(v, vecA));
         const simB = data.vectors.map((v) => dot(v, vecB));
         const exclude = new Set([wordA, wordB]);
-        const top = {};
-        for (const op of OPS) top[op] = applyOperator(op, data, wordA, wordB, { topK: 5, exclude });
-        Object.assign(state, { wordA, wordB, idxA, idxB, cosAB, norm, simA, simB, top });
+        const topWide = {};
+        for (const op of OPS) topWide[op] = applyOperator(op, data, wordA, wordB, { topK: 10, exclude });
+        const top = Object.fromEntries(OPS.map((op) => [op, topWide[op].slice(0, 5)]));
+        Object.assign(state, { wordA, wordB, idxA, idxB, cosAB, norm, simA, simB, top, topWide });
+        const half = Math.acos(Math.max(-1, Math.min(1, cosAB))) / 2;
+        state.sh = Math.max(Math.sin(half), 1e-6);
+        state.ch = Math.max(Math.cos(half), 1e-6);
+        state.half = half;
         return true;
       }
 
-      function renderPlane() {
-        const { data, simA, simB, idxA, idxB, norm, top, wordA, wordB } = state;
-        const op = selectedOp();
-        const score = scoreFn(op, norm);
-        const plane = els.plane;
-        plane.replaceChildren();
+      /** Place a word on the unit dome: x sideways and y along ĉ in the a–b plane, h = length of the hidden part. */
+      function toSphere(sa, sb) {
+        const x = (sb - sa) / (2 * state.sh);
+        const y = (sa + sb) / (2 * state.ch);
+        const r2 = x * x + y * y;
+        if (r2 > 1 + 1e-6) return null;
+        return { x, y, h: Math.sqrt(Math.max(0, 1 - r2)) };
+      }
 
-        let minSim = 0;
-        let maxSim = 0;
-        for (let i = 0; i < simA.length; i++) {
-          if (i === idxA || i === idxB) continue;
-          minSim = Math.min(minSim, simA[i], simB[i]);
-          maxSim = Math.max(maxSim, simA[i], simB[i]);
-        }
-        const lo = Math.floor(minSim * 10) / 10;
-        const hi = Math.min(1, Math.ceil((maxSim + 0.05) * 10) / 10);
-        const pw = W - M.l - M.r;
-        const ph = H - M.t - M.b;
-        const x = (sa) => M.l + ((sa - lo) / (hi - lo)) * pw;
-        const y = (sb) => M.t + ph - ((sb - lo) / (hi - lo)) * ph;
+      function heatColor(score) {
+        const t = Math.pow(Math.min(Math.max(score, 0), 1), 0.8);
+        return [255 + (23 - 255) * t, 255 + (102 - 255) * t, 255 + (160 - 255) * t];
+      }
 
-        // Heatmap of the score over the whole plane
-        const n = 140;
-        const canvas = document.createElement("canvas");
-        canvas.width = n;
-        canvas.height = n;
-        const ctx = canvas.getContext("2d");
-        const img = ctx.createImageData(n, n);
-        for (let row = 0; row < n; row++) {
-          for (let col = 0; col < n; col++) {
-            const sa = lo + ((col + 0.5) / n) * (hi - lo);
-            const sb = hi - ((row + 0.5) / n) * (hi - lo);
-            const t = Math.pow(Math.min(Math.max(score(sa, sb), 0), 1), 0.8);
-            const k = (row * n + col) * 4;
-            img.data[k] = 255 + (23 - 255) * t;
-            img.data[k + 1] = 255 + (102 - 255) * t;
-            img.data[k + 2] = 255 + (160 - 255) * t;
-            img.data[k + 3] = 150;
+      const domes = {};
+
+      async function loadThree() {
+        const THREE = await import("three");
+        const { OrbitControls } = await import("three/addons/controls/OrbitControls.js");
+        const { CSS2DRenderer, CSS2DObject } = await import("three/addons/renderers/CSS2DRenderer.js");
+        const { Line2 } = await import("three/addons/lines/Line2.js");
+        const { LineMaterial } = await import("three/addons/lines/LineMaterial.js");
+        const { LineGeometry } = await import("three/addons/lines/LineGeometry.js");
+        return { THREE, OrbitControls, CSS2DRenderer, CSS2DObject, Line2, LineMaterial, LineGeometry };
+      }
+
+      function createDome(container, three) {
+        const { THREE, OrbitControls, CSS2DRenderer } = three;
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        container.appendChild(renderer.domElement);
+        const labelRenderer = new CSS2DRenderer();
+        labelRenderer.domElement.className = "dome-labels";
+        container.appendChild(labelRenderer.domElement);
+        const tooltip = document.createElement("div");
+        tooltip.className = "dome-tooltip";
+        tooltip.hidden = true;
+        container.appendChild(tooltip);
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color("#ffffff");
+        const camera = new THREE.PerspectiveCamera(38, 4 / 3, 0.01, 100);
+        camera.position.set(1.6, 1.6, -2.2);
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 0.35, 0);
+        controls.update();
+        const group = new THREE.Group();
+        scene.add(group);
+
+        const render = () => {
+          renderer.render(scene, camera);
+          labelRenderer.render(scene, camera);
+        };
+        const resolution = new THREE.Vector2(1, 1);
+        const resize = () => {
+          const w = container.clientWidth;
+          const h = Math.round(w * 0.65);
+          renderer.setSize(w, h);
+          labelRenderer.setSize(w, h);
+          resolution.set(w, h);
+          group.traverse((obj) => {
+            if (obj.material && obj.material.isLineMaterial) obj.material.resolution.set(w, h);
+          });
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          render();
+        };
+        controls.addEventListener("change", render);
+        new ResizeObserver(resize).observe(container);
+
+        const raycaster = new THREE.Raycaster();
+        raycaster.params.Points.threshold = 0.015;
+        const dome = { ...three, resolution, group, render, points: null, pointLabels: [] };
+        renderer.domElement.addEventListener("pointermove", (event) => {
+          if (!dome.points) return;
+          const rect = renderer.domElement.getBoundingClientRect();
+          const pointer = new THREE.Vector2(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1);
+          raycaster.setFromCamera(pointer, camera);
+          const hit = raycaster.intersectObject(dome.points)[0];
+          tooltip.hidden = !hit;
+          if (hit) {
+            tooltip.textContent = dome.pointLabels[hit.index];
+            tooltip.style.left = `${event.clientX - rect.left + 12}px`;
+            tooltip.style.top = `${event.clientY - rect.top + 12}px`;
+          }
+        });
+
+        resize();
+        return dome;
+      }
+
+      function renderRectangles(topN) {
+        const root = els.rectangles;
+        root.replaceChildren();
+        const cols = Math.min(Math.max(topN.length, 1), 5);
+        const rows = Math.ceil(topN.length / cols);
+        const panelW = 136;
+        const panelH = 215;
+        const S = 120;
+        root.setAttribute("viewBox", `0 0 ${cols * panelW} ${rows * panelH}`);
+        topN.forEach((c, i) => {
+          const sa = Math.max(c.simA, 0);
+          const sb = Math.max(c.simB, 0);
+          const side = Math.sqrt(sa * sb);
+          const wordColor = WORD_COLORS[(c.rank - 1) % WORD_COLORS.length];
+          const ox = (i % cols) * panelW + 10;
+          const oy = Math.floor(i / cols) * panelH + 160;
+          // Axes, scaled so similarity 1 = S px
+          svg("line", { x1: ox, y1: oy, x2: ox + S, y2: oy, stroke: "#bbb" }, root);
+          svg("line", { x1: ox, y1: oy, x2: ox, y2: oy - S, stroke: "#bbb" }, root);
+          svg("rect", { x: ox, y: oy - sb * S, width: sa * S, height: sb * S, fill: wordColor, "fill-opacity": 0.3, stroke: wordColor, "stroke-width": 2 }, root);
+          svg("rect", { x: ox, y: oy - side * S, width: side * S, height: side * S, fill: "none", stroke: "#222", "stroke-width": 1.5, "stroke-dasharray": "4 3" }, root);
+          svg("text", { x: ox, y: oy - S - 8, "font-size": 14, "font-weight": c.rank === 1 ? 700 : 500, fill: wordColor }, root, `${c.rank}. ${c.candidate}`);
+          svg("text", { x: ox, y: oy + 18, "font-size": 12, fill: "#333" }, root, `${fmt(sa)} × ${fmt(sb)} = ${fmt(sa * sb)}`);
+          svg("text", { x: ox, y: oy + 36, "font-size": 12, "font-weight": 700, fill: "#222" }, root, `square side = ${fmt3(side)}`);
+        });
+      }
+
+      function renderProtractor(topN, show) {
+        els.protractorFigure.hidden = !show;
+        if (!show) return;
+        const root = els.protractor;
+        root.replaceChildren();
+        const ox = 40;
+        const oy = 265;
+        const R = 235;
+        const at = (deg, r) => [ox + r * Math.cos((deg * Math.PI) / 180), oy - r * Math.sin((deg * Math.PI) / 180)];
+
+        svg("path", { d: `M${ox + R},${oy} A${R},${R} 0 0 0 ${ox},${oy - R}`, fill: "none", stroke: "#aaa" }, root);
+        for (let deg = 0; deg <= 90; deg += 5) {
+          const [x1, y1] = at(deg, R);
+          const [x2, y2] = at(deg, R + (deg % 10 === 0 ? 10 : 5));
+          svg("line", { x1, y1, x2, y2, stroke: "#888" }, root);
+          if (deg % 10 === 0) {
+            const [tx, ty] = at(deg, R + 22);
+            svg("text", { x: tx, y: ty + 4, "text-anchor": "middle", "font-size": 11, fill: "#555" }, root, `${deg}°`);
           }
         }
-        ctx.putImageData(img, 0, 0);
-        svg("image", { href: canvas.toDataURL(), x: M.l, y: M.t, width: pw, height: ph, preserveAspectRatio: "none" }, plane);
+        svg("line", { x1: ox, y1: oy, x2: ox + R, y2: oy, stroke: "#2a7d46", "stroke-width": 3 }, root);
+        svg("text", { x: ox + R / 2, y: oy + 18, "text-anchor": "middle", "font-size": 13, "font-weight": 700, fill: "#2a7d46" }, root, "ĉ");
 
-        const defs = svg("defs", {}, plane);
-        const clip = svg("clipPath", { id: "plot-area" }, defs);
-        svg("rect", { x: M.l, y: M.t, width: pw, height: ph }, clip);
+        topN.forEach((c, i) => {
+          const cosine = Math.max(-1, Math.min(1, (c.simA + c.simB) / state.norm));
+          const deg = (Math.acos(cosine) * 180) / Math.PI;
+          const wordColor = WORD_COLORS[(c.rank - 1) % WORD_COLORS.length];
+          const [x, y] = at(deg, R);
+          svg("line", { x1: ox, y1: oy, x2: x, y2: y, stroke: wordColor, "stroke-width": c.rank === 1 ? 3 : 2 }, root);
+          svg("circle", { cx: x, cy: y, r: 4, fill: wordColor }, root);
+          svg("text", { x: 340, y: 40 + i * 22, "font-size": 14, "font-weight": c.rank === 1 ? 700 : 500, fill: wordColor }, root, `${c.rank}. ${c.candidate}: ${deg.toFixed(1)}°`);
+        });
+      }
 
-        // Axes and ticks
-        svg("rect", { x: M.l, y: M.t, width: pw, height: ph, fill: "none", stroke: "#888" }, plane);
-        for (let v = Math.ceil(lo * 10) / 10; v <= hi + 0.0001; v += 0.1) {
-          const tick = Math.round(v * 10) / 10;
-          svg("text", { x: x(tick), y: H - M.b + 18, "text-anchor": "middle", "font-size": 12 }, plane, tick.toFixed(1));
-          svg("text", { x: M.l - 8, y: y(tick) + 4, "text-anchor": "end", "font-size": 12 }, plane, tick.toFixed(1));
+      function insideBoth() {
+        const threshold = Math.cos((parseFloat(els.circleAngle.value) * Math.PI) / 180);
+        const { data, simA, simB, idxA, idxB } = state;
+        const words = [];
+        for (let i = 0; i < data.words.length; i++) {
+          const s = Math.min(simA[i], simB[i]);
+          if (i !== idxA && i !== idxB && s >= threshold - 1e-9) words.push({ candidate: data.words[i], simA: simA[i], simB: simB[i], score: s });
         }
-        svg("text", { x: M.l + pw / 2, y: H - 10, "text-anchor": "middle", "font-size": 14, "font-weight": 600 }, plane, `sₐ = similarity to "${wordA}"`);
-        svg("text", { x: 16, y: M.t + ph / 2, "text-anchor": "middle", "font-size": 14, "font-weight": 600, transform: `rotate(-90 16 ${M.t + ph / 2})` }, plane, `s_b = similarity to "${wordB}"`);
+        words.sort((x, y) => y.score - x.score || (x.candidate < y.candidate ? -1 : 1));
+        // Beyond the color palette, extra words are shown as unlabeled glowing dots
+        return words.slice(0, WORD_COLORS.length).map((w, i) => ({ ...w, rank: i + 1 }));
+      }
 
-        const clipped = svg("g", { "clip-path": "url(#plot-area)" }, plane);
-        if (lo < 0) {
-          svg("line", { x1: x(0), y1: M.t, x2: x(0), y2: M.t + ph, stroke: "#999", "stroke-width": 0.8 }, clipped);
-          svg("line", { x1: M.l, y1: y(0), x2: M.l + pw, y2: y(0), stroke: "#999", "stroke-width": 0.8 }, clipped);
+      function renderDome(op) {
+        if (!state || !state.top) return;
+        const ctl = ui[op];
+        let topN;
+        if (op === "centroid") {
+          els.centroidNorm.textContent = `‖a + b‖ = √(2 + 2·cos(a, b)) = √(2 + 2·${fmt3(state.cosAB)}) = ${fmt3(state.norm)}`;
+          ctl.topNOut.textContent = ctl.topN.value;
+          topN = state.topWide.centroid.slice(0, parseInt(ctl.topN.value, 10));
+          renderProtractor(topN, ctl.showAngles.checked);
+        } else {
+          els.circleAngleOut.textContent = parseFloat(els.circleAngle.value).toFixed(1);
+          topN = insideBoth();
         }
-        svg("line", { x1: x(lo), y1: y(lo), x2: x(hi), y2: y(hi), stroke: "#555", "stroke-dasharray": "4 4" }, clipped);
-        const diag = lo + (hi - lo) * 0.85;
-        svg("text", { x: x(diag), y: y(diag) + 16, "font-size": 11, fill: "#555", transform: `rotate(-45 ${x(diag)} ${y(diag) + 16})`, "text-anchor": "middle" }, clipped, "equally close to both");
+        const dome = domes[op];
+        if (!dome) return;
+        const { THREE, CSS2DObject, Line2, LineMaterial, LineGeometry, group } = dome;
+        // WebGL lines are always 1px, so use Line2 for a width hierarchy (widths in pixels)
+        const thickLine = (points, colorHex, width, dashed = false) => {
+          const geometry = new LineGeometry();
+          geometry.setPositions(points.flatMap((pt) => [pt.x, pt.y, pt.z]));
+          const material = new LineMaterial({ color: colorHex, linewidth: width, dashed, dashSize: 0.025, gapSize: 0.02, depthTest: false, transparent: true });
+          material.resolution.copy(dome.resolution);
+          const line = new Line2(geometry, material);
+          if (dashed) line.computeLineDistances();
+          line.renderOrder = 3;
+          group.add(line);
+          return line;
+        };
+        const shaftedArrow = (dir, colorHex, width, headLength, headWidth) => {
+          const helper = new THREE.ArrowHelper(dir, new THREE.Vector3(0, 0, 0), 1, colorHex, headLength, headWidth);
+          helper.line.visible = false;
+          helper.cone.material.depthTest = false;
+          helper.cone.renderOrder = 3;
+          group.add(helper);
+          thickLine([new THREE.Vector3(0, 0, 0), dir.clone().multiplyScalar(1 - headLength)], colorHex, width);
+        };
+        const { data, simA, simB, idxA, idxB, cosAB, norm, sh, ch, wordA, wordB } = state;
+        const score = scoreFn(op, norm);
+        group.traverse((obj) => {
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) obj.material.dispose();
+        });
+        group.clear();
+        // Three.js is y-up, so the hidden part h is up and ĉ points away from the camera.
+        const v3 = (p, lift = 1) => new THREE.Vector3(p.x * lift, p.h * lift, -p.y * lift);
 
-        const toPath = (points) => points.map(([sa, sb], i) => `${i ? "L" : "M"}${x(sa).toFixed(1)},${y(sb).toFixed(1)}`).join(" ");
-        for (let level = 0.1; level < 1; level += 0.1) {
-          const pts = levelCurve(op, level, lo, hi, norm);
-          if (pts.length) svg("path", { d: toPath(pts), fill: "none", stroke: "#666", "stroke-width": 0.7, opacity: 0.6 }, clipped);
+        const domeGeo = new THREE.SphereGeometry(1, 96, 48, 0, Math.PI * 2, 0, Math.PI / 2);
+        const pos = domeGeo.attributes.position;
+        const colors = [];
+        const color = new THREE.Color();
+        for (let i = 0; i < pos.count; i++) {
+          const x = pos.getX(i);
+          const y = -pos.getZ(i);
+          const [r, g, b] = heatColor(score(-sh * x + ch * y, sh * x + ch * y));
+          color.setRGB(r / 255, g / 255, b / 255, THREE.SRGBColorSpace);
+          colors.push(color.r, color.g, color.b);
         }
+        domeGeo.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+        group.add(new THREE.Mesh(domeGeo, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.4, side: THREE.DoubleSide, depthWrite: false })));
 
-        // Dots for every candidate word
-        const topWords = new Map(top[op].map((c) => [c.candidate, c.rank]));
-        const dots = svg("g", {}, clipped);
+        const rim = [];
+        for (let i = 0; i <= 128; i++) rim.push(new THREE.Vector3(Math.cos((i / 128) * Math.PI * 2), 0, Math.sin((i / 128) * Math.PI * 2)));
+        group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(rim), new THREE.LineBasicMaterial({ color: "#999" })));
+
+        const addLabel = (text, position, colorHex, bold = false) => {
+          const div = document.createElement("div");
+          div.className = "dome-label";
+          div.textContent = text;
+          div.style.color = colorHex;
+          if (bold) div.style.fontSize = "14px";
+          const label = new CSS2DObject(div);
+          label.position.copy(position);
+          label.center.set(-0.1, 1.1);
+          group.add(label);
+        };
+
+        const topWords = new Set(topN.map((c) => c.candidate));
+        const positions = [];
+        const pointLabels = [];
         for (let i = 0; i < data.words.length; i++) {
           if (i === idxA || i === idxB || topWords.has(data.words[i])) continue;
-          const c = svg("circle", { cx: x(simA[i]), cy: y(simB[i]), r: 2.6, fill: "#444", opacity: 0.45 }, dots);
-          svg("title", {}, c, `${data.words[i]}: sₐ=${fmt(simA[i])}, s_b=${fmt(simB[i])}, score=${fmt3(score(simA[i], simB[i]))}`);
+          const p = toSphere(simA[i], simB[i]);
+          if (!p) continue;
+          const v = v3(p);
+          positions.push(v.x, v.y, v.z);
+          pointLabels.push(`${data.words[i]}: score ${fmt3(score(simA[i], simB[i]))}`);
         }
+        const pointsGeo = new THREE.BufferGeometry();
+        pointsGeo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+        dome.points = new THREE.Points(pointsGeo, new THREE.PointsMaterial({ color: "#444", size: 0.018, transparent: true, opacity: 0.45 }));
+        dome.pointLabels = pointLabels;
+        group.add(dome.points);
 
-        const winner = top[op][0];
-        if (winner) {
-          const pts = levelCurve(op, winner.score, lo, hi, norm);
-          if (pts.length) svg("path", { d: toPath(pts), fill: "none", stroke: "#d1495b", "stroke-width": 2.5 }, clipped);
-        }
-
-        for (const c of [...top[op]].reverse()) {
-          const cx = x(c.simA);
-          const cy = y(c.simB);
-          const isWinner = c.rank === 1;
-          const dotEl = svg("circle", { cx, cy, r: isWinner ? 6 : 4.5, fill: "#d1495b", stroke: "#fff", "stroke-width": 1.5 }, clipped);
-          svg("title", {}, dotEl, `#${c.rank} ${c.candidate}: sₐ=${fmt(c.simA)}, s_b=${fmt(c.simB)}, score=${fmt3(c.score)}`);
-          svg("text", { x: cx + 8, y: cy - 6, "font-size": isWinner ? 15 : 11, "font-weight": isWinner ? 700 : 500, fill: "#8a1c2b", stroke: "#fff", "stroke-width": 3, "paint-order": "stroke" }, clipped, `${c.rank}. ${c.candidate}`);
-        }
-
-        const sliderA = parseFloat(els.sliderA.value);
-        const sliderB = parseFloat(els.sliderB.value);
-        svg("circle", { cx: x(sliderA), cy: y(sliderB), r: 8, fill: "none", stroke: "#e09f3e", "stroke-width": 3 }, clipped);
-
-        els.opTitle.textContent = OP_INFO[op].title;
-        els.opShape.textContent = OP_INFO[op].shape;
-        els.opWorked.textContent = winner ? `${winner.candidate}: ${workedFormula(op, winner.simA, winner.simB, norm)}` : "";
-        els.opTop.replaceChildren(
-          ...top[op].map((c) => {
-            const tr = document.createElement("tr");
-            if (c.rank === 1) tr.className = "winner";
-            for (const v of [c.rank, c.candidate, fmt3(c.simA), fmt3(c.simB), fmt3(c.score)]) {
-              const td = document.createElement("td");
-              td.textContent = v;
-              tr.appendChild(td);
+        if (op === "balanced") {
+          const alpha = (parseFloat(els.circleAngle.value) * Math.PI) / 180;
+          const threshold = Math.cos(alpha);
+          const inside = [];
+          for (let i = 0; i < data.words.length; i++) {
+            if (i === idxA || i === idxB || topWords.has(data.words[i])) continue;
+            const s = Math.min(simA[i], simB[i]);
+            if (s < threshold - 1e-9) continue;
+            const p = toSphere(simA[i], simB[i]);
+            if (p) inside.push({ v: v3(p), word: data.words[i] });
+          }
+          if (inside.length) {
+            // Categorical colors hashed from the word, so color doesn't imply closeness and stays stable as the circles move
+            const insidePositions = [];
+            const insideColors = [];
+            inside.forEach(({ v, word }) => {
+              insidePositions.push(v.x, v.y, v.z);
+              let hash = 2166136261;
+              for (const letter of word) hash = Math.imul(hash ^ letter.charCodeAt(0), 16777619);
+              const c = new THREE.Color().setHSL((hash >>> 0) / 4294967296, 0.75, 0.5, THREE.SRGBColorSpace);
+              insideColors.push(c.r, c.g, c.b);
+            });
+            const insideGeo = new THREE.BufferGeometry();
+            insideGeo.setAttribute("position", new THREE.Float32BufferAttribute(insidePositions, 3));
+            insideGeo.setAttribute("color", new THREE.Float32BufferAttribute(insideColors, 3));
+            group.add(new THREE.Points(insideGeo, new THREE.PointsMaterial({ vertexColors: true, size: 0.032 })));
+          }
+          for (const [p, colorHex, word] of [[toSphere(1, cosAB), "#1766a0", wordA], [toSphere(cosAB, 1), "#9b467d", wordB]]) {
+            // Circle of points at angle alpha from the input, clipped to the dome (h >= 0)
+            const center = v3(p).normalize();
+            const e1 = new THREE.Vector3().crossVectors(center, new THREE.Vector3(0, 1, 0)).normalize();
+            const e2 = new THREE.Vector3().crossVectors(center, e1).normalize();
+            const runs = [];
+            let run = [];
+            let top = null;
+            for (let k = 0; k <= 180; k++) {
+              const t = (k / 180) * Math.PI * 2;
+              const point = center.clone().multiplyScalar(Math.cos(alpha)).add(e1.clone().multiplyScalar(Math.sin(alpha) * Math.cos(t))).add(e2.clone().multiplyScalar(Math.sin(alpha) * Math.sin(t)));
+              if (point.y >= -1e-6) {
+                run.push(point.multiplyScalar(1.004));
+                if (!top || point.y > top.y) top = point;
+              } else if (run.length) {
+                runs.push(run);
+                run = [];
+              }
             }
-            return tr;
-          }),
-        );
-      }
-
-      function renderBars() {
-        const sa = parseFloat(els.sliderA.value);
-        const sb = parseFloat(els.sliderB.value);
-        els.sliderAOut.textContent = fmt(sa);
-        els.sliderBOut.textContent = fmt(sb);
-        const norm = state ? state.norm : Math.SQRT2;
-        const rows = [];
-        for (const op of ["mean", "geometric_mean", "balanced", "centroid"]) {
-          const v = scoreFn(op, norm)(sa, sb);
-          const name = document.createElement("span");
-          name.textContent = op === "centroid" ? `centroid (÷${fmt(norm)})` : op;
-          const track = document.createElement("span");
-          track.className = "bar-track";
-          const bar = document.createElement("span");
-          bar.className = "bar";
-          const clampedV = Math.max(-1, Math.min(1, v));
-          bar.style.left = `${50 + Math.min(clampedV, 0) * 50}%`;
-          bar.style.width = `${Math.abs(clampedV) * 50}%`;
-          track.appendChild(bar);
-          const value = document.createElement("span");
-          value.textContent = fmt3(v);
-          rows.push(name, track, value);
+            if (run.length) runs.push(run);
+            for (const r of runs) thickLine(r, colorHex, 3);
+            if (top) addLabel(`within ${(alpha * 180 / Math.PI).toFixed(1)}° of "${word}"`, top, colorHex);
+          }
         }
-        els.bars.replaceChildren(...rows);
-      }
 
-      function renderCentroid() {
-        const { cosAB, norm, wordA, wordB } = state;
-        const root = els.centroidDiagram;
-        root.replaceChildren();
-        const defs = svg("defs", {}, root);
-        for (const [id, color] of [["arrow-blue", "#1766a0"], ["arrow-purple", "#9b467d"], ["arrow-green", "#2a7d46"], ["arrow-gray", "#777"]]) {
-          const marker = svg("marker", { id, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: "auto-start-reverse" }, defs);
-          svg("path", { d: "M0,0 L10,5 L0,10 z", fill: color }, marker);
+        const showAngles = ctl.showAngles.checked;
+        // Protractor-style arc between two unit vectors, slerped so it stays in their plane
+        const drawArc = (from, to, colorHex, radius, width, fillOpacity) => {
+          const theta = from.angleTo(to);
+          const arcPoints = [];
+          for (let k = 0; k <= 48; k++) {
+            const t = k / 48;
+            const point = from.clone().multiplyScalar(Math.sin((1 - t) * theta)).add(to.clone().multiplyScalar(Math.sin(t * theta)));
+            arcPoints.push(point.divideScalar(Math.sin(theta)).multiplyScalar(radius));
+          }
+          // Shaded wedge: a triangle fan from the origin to the arc
+          const wedge = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), ...arcPoints]);
+          wedge.setIndex(arcPoints.slice(1).flatMap((_, k) => [0, k + 1, k + 2]));
+          const wedgeMesh = new THREE.Mesh(wedge, new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: fillOpacity, side: THREE.DoubleSide, depthTest: false, depthWrite: false }));
+          wedgeMesh.renderOrder = 2;
+          group.add(wedgeMesh);
+          thickLine(arcPoints, colorHex, width);
+          return { theta, arcPoints };
+        };
+        const vecA = v3(toSphere(1, cosAB)).normalize();
+        const vecB = v3(toSphere(cosAB, 1)).normalize();
+        for (const c of topN) {
+          const p = toSphere(c.simA, c.simB);
+          if (!p) continue;
+          const isWinner = c.rank === 1;
+          const wordColor = WORD_COLORS[(c.rank - 1) % WORD_COLORS.length];
+          const ball = new THREE.Mesh(new THREE.SphereGeometry(isWinner ? 0.028 : 0.018, 16, 12), new THREE.MeshBasicMaterial({ color: wordColor }));
+          ball.position.copy(v3(p));
+          group.add(ball);
+          shaftedArrow(v3(p).normalize(), wordColor, isWinner ? 3.5 : 2.5, 0.05, 0.025);
+          if (ctl.showDrops.checked) {
+            // Drop line: the hidden part, ending at the word's spot on the a–b plane
+            thickLine([v3(p), v3({ ...p, h: 0 })], wordColor, 1.5, true);
+          }
+          addLabel(`${c.rank}. ${c.candidate}`, v3(p), wordColor, isWinner);
+
+          if (showAngles && op === "balanced") {
+            // The larger angle (the weaker similarity) sets the balanced score, so it gets the thick arc
+            const w = v3(p).normalize();
+            const angles = [
+              { from: vecA, word: wordA, theta: vecA.angleTo(w) },
+              { from: vecB, word: wordB, theta: vecB.angleTo(w) },
+            ];
+            const worst = Math.max(angles[0].theta, angles[1].theta);
+            for (const { from, word, theta } of angles) {
+              const isWorst = theta === worst;
+              const { arcPoints } = drawArc(from, w, wordColor, 0.5, isWorst ? 5 : 1.5, isWorst ? 0.3 : 0.08);
+              addLabel(`${((theta * 180) / Math.PI).toFixed(1)}° to "${word}"`, arcPoints[24], wordColor, isWorst);
+            }
+          } else if (showAngles) {
+            const { theta, arcPoints } = drawArc(new THREE.Vector3(0, 0, -1), v3(p).normalize(), wordColor, 0.4, isWinner ? 3.5 : 2.5, isWinner ? 0.3 : 0.12);
+            addLabel(`${Math.round((theta * 180) / Math.PI)}°`, arcPoints[40], wordColor, isWinner);
+          }
         }
-        const R = 115;
-        const ox = 160;
-        const oy = 275;
-        const half = Math.acos(Math.max(-1, Math.min(1, cosAB))) / 2;
-        const ax = ox - R * Math.sin(half);
-        const ay = oy - R * Math.cos(half);
-        const bx = ox + R * Math.sin(half);
-        const by = ay;
-        const sx = ox;
-        const sy = oy - R * norm;
 
-        svg("circle", { cx: ox, cy: oy, r: R, fill: "none", stroke: "#ccc", "stroke-dasharray": "3 3" }, root);
-        svg("text", { x: ox + R * 0.75, y: oy - R * 0.62 + 30, "font-size": 11, fill: "#888" }, root, "length 1");
-        svg("line", { x1: ax, y1: ay, x2: sx, y2: sy, stroke: "#bbb", "stroke-dasharray": "4 3" }, root);
-        svg("line", { x1: bx, y1: by, x2: sx, y2: sy, stroke: "#bbb", "stroke-dasharray": "4 3" }, root);
-        svg("line", { x1: ox, y1: oy, x2: sx, y2: sy, stroke: "#777", "stroke-width": 2, "stroke-dasharray": "6 4", "marker-end": "url(#arrow-gray)" }, root);
-        svg("line", { x1: ox, y1: oy, x2: ox, y2: oy - R, stroke: "#2a7d46", "stroke-width": 3.5, "marker-end": "url(#arrow-green)" }, root);
-        svg("line", { x1: ox, y1: oy, x2: ax, y2: ay, stroke: "#1766a0", "stroke-width": 3, "marker-end": "url(#arrow-blue)" }, root);
-        svg("line", { x1: ox, y1: oy, x2: bx, y2: by, stroke: "#9b467d", "stroke-width": 3, "marker-end": "url(#arrow-purple)" }, root);
-
-        svg("text", { x: ax - 6, y: ay, "text-anchor": "end", "font-size": 13, "font-weight": 600, fill: "#1766a0" }, root, `a "${wordA}"`);
-        svg("text", { x: bx + 6, y: by, "font-size": 13, "font-weight": 600, fill: "#9b467d" }, root, `b "${wordB}"`);
-        svg("text", { x: sx + 8, y: sy + 4, "font-size": 13, fill: "#555" }, root, `a + b (length ${fmt(norm)})`);
-        svg("text", { x: ox + 8, y: oy - R * 0.45, "font-size": 13, "font-weight": 600, fill: "#2a7d46", stroke: "#fff", "stroke-width": 3, "paint-order": "stroke" }, root, "ĉ (length 1)");
-        svg("text", { x: ox, y: oy + 18, "text-anchor": "middle", "font-size": 11, fill: "#555" }, root, `angle between a and b: ${Math.round((2 * half * 180) / Math.PI)}°`);
-
-        els.centroidNorm.textContent = `‖a + b‖ = √(2 + 2·cos(a, b)) = √(2 + 2·${fmt3(cosAB)}) = ${fmt3(norm)}`;
+        const arrow = (p, colorHex, text) => {
+          shaftedArrow(v3(p).normalize(), colorHex, 4, 0.07, 0.04);
+          addLabel(text, v3(p), colorHex, true);
+        };
+        arrow(toSphere(1, cosAB), "#1766a0", `a "${wordA}"`);
+        arrow(toSphere(cosAB, 1), "#9b467d", `b "${wordB}"`);
+        arrow({ x: 0, y: 1, h: 0 }, "#2a7d46", "ĉ");
+        dome.render();
       }
 
       function renderComparison() {
@@ -672,7 +797,7 @@
             if (c) {
               td.textContent = `${c.candidate} (${fmt3(c.score)})`;
               if (r === 0) td.classList.add("winner");
-              if (top.mean[r] && top.mean[r].candidate !== c.candidate) td.classList.add("differs");
+              if (top.centroid[r] && top.centroid[r].candidate !== c.candidate) td.classList.add("differs");
             }
             tr.appendChild(td);
           }
@@ -683,9 +808,13 @@
 
       function renderAll() {
         if (!state || !computeState()) return;
-        renderPlane();
-        renderBars();
-        renderCentroid();
+        const balancedWinner = state.top.balanced[0];
+        if (balancedWinner) {
+          els.circleAngle.value = (Math.acos(Math.min(1, balancedWinner.score)) * 180) / Math.PI;
+        }
+        renderDome("centroid");
+        renderDome("balanced");
+        renderRectangles(state.topWide.geometric_mean.slice(0, 3));
         renderComparison();
       }
 
@@ -714,23 +843,23 @@
         els.model.addEventListener("change", loadModel);
         els.wordA.addEventListener("change", renderAll);
         els.wordB.addEventListener("change", renderAll);
-        document.querySelectorAll('input[name="op"]').forEach((r) => r.addEventListener("change", renderPlane));
-        for (const slider of [els.sliderA, els.sliderB]) {
-          slider.addEventListener("input", () => {
-            renderBars();
-            if (state && state.top) renderPlane();
-          });
+        for (const op of ["centroid", "balanced"]) {
+          ui[op].showAngles.addEventListener("change", () => renderDome(op));
+          ui[op].showDrops.addEventListener("change", () => renderDome(op));
         }
-        document.querySelectorAll(".presets button").forEach((button) =>
-          button.addEventListener("click", () => {
-            els.sliderA.value = button.dataset.a;
-            els.sliderB.value = button.dataset.b;
-            renderBars();
-            if (state && state.top) renderPlane();
-          }),
-        );
-        renderBars();
+        ui.centroid.topN.addEventListener("input", () => renderDome("centroid"));
+        els.circleAngle.addEventListener("input", () => renderDome("balanced"));
         await loadModel();
+        try {
+          const three = await loadThree();
+          for (const op of ["centroid", "balanced"]) {
+            domes[op] = createDome(ui[op].dome, three);
+            ui[op].status.hidden = true;
+            renderDome(op);
+          }
+        } catch (err) {
+          for (const op of ["centroid", "balanced"]) ui[op].status.textContent = `Couldn't load the 3D view: ${err.message}`;
+        }
       }
 
       init().catch((err) => {

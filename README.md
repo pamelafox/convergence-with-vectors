@@ -152,7 +152,6 @@ All embeddings are L2-normalized, so cosine similarity is a plain dot product.
 | ---------- | ------------ |
 | `centroid` | Nearest vocabulary word to `normalize(embed(a) + embed(b))`. |
 | `balanced` | For each candidate `w`: `min(cos(w, a), cos(w, b))` — rewards being close to *both* inputs. |
-| `mean` | For each candidate `w`: `(cos(w, a) + cos(w, b)) / 2`. |
 | `geometric_mean` | Geometric mean of the two cosine similarities. **Negative similarities are clamped to 0 before multiplying** (a geometric mean is undefined for negatives, and multiplying two negatives would otherwise produce a misleading positive score), so a candidate dissimilar to either input scores exactly 0. |
 | `textual` | Embed a phrase containing both words (e.g. `"{a} and {b}"`) and return the nearest vocabulary word to *that* embedding. The phrase template is configurable via `--template` (repeatable), so different templates can be compared side by side. |
 
@@ -224,18 +223,19 @@ both inputs, winning score margin (or tie-break), and a scatterplot of all eligi
 equal-score contours. The round table highlights agreement and links repeated pairs back to their
 earlier round; stalled games report the reason and the attempted round.
 Within each model's round details, expand **What would another operator choose?** to compare all
-four operators' winners and top five candidates for that same input pair. Different winning words
+three operators' winners and top five candidates for that same input pair. Different winning words
 are highlighted; this comparison does not change the game or replay subsequent rounds.
 
-[**web/operators.html**](web/operators.html) is a visual explainer for the operators' math. It plots
-every vocabulary word by its similarity to each input word, shades the plane by each operator's score,
-and draws the lines of equal score. It also has sliders to score a made-up candidate, a 2D diagram
-showing why centroid and mean rank words the same way, and a side-by-side table of each operator's top 5.
+[**web/operators.html**](web/operators.html) is a visual explainer for the operators' math, with the view that fits each one best.
+Centroid and balanced use a rotatable 3D dome (built with three.js, loaded from a CDN) that places every word vector
+relative to the plane of the two input words: centroid shows each word's angle to the midpoint vector, and balanced grows
+circles around both input words. Geometric mean shows each word's two similarities as a rectangle next to the square with
+the same area. A side-by-side table compares each operator's top 5.
 
 There's no model inference in the browser: `export_web_embeddings.py` precomputes normalized
 embeddings for a closed ~1000-word vocabulary ([data/vocab_1000.txt](data/vocab_1000.txt)) for each
 model and writes them to JSON files under `web/data/`, which the page simply fetches. Because of
-this, the web version only supports the vocabulary-only operators (`centroid`, `balanced`, `mean`,
+this, the web version only supports the vocabulary-only operators (`centroid`, `balanced`,
 `geometric_mean`) and requires both starting words to come from that vocabulary — the `textual`
 operator, which needs to embed an arbitrary phrase at request time, isn't available in the browser.
 
@@ -260,7 +260,7 @@ python -m http.server 8000
 | [harrier.py](harrier.py) | Computes local embeddings with Microsoft Harrier |
 | [vocab.py](vocab.py) | Vocabulary file parsing for the word-combination experiments |
 | [embeddings.py](embeddings.py) | Model registry and cached vocabulary embeddings |
-| [operators.py](operators.py) | The five word-combination operators and their scoring math |
+| [operators.py](operators.py) | The four word-combination operators and their scoring math |
 | [reporting.py](reporting.py) | Result rows, CSV/JSON writers, and terminal tables |
 | [compare_pair.py](compare_pair.py) | CLI: compare all operators for one word pair |
 | [compare_batch.py](compare_batch.py) | CLI: run a batch of word pairs from a CSV file |

@@ -20,12 +20,6 @@ def test_balanced_scores_is_elementwise_min():
     np.testing.assert_allclose(ops.balanced_scores(sim_a, sim_b), [0.2, 0.1, 0.5])
 
 
-def test_mean_scores_is_elementwise_average():
-    sim_a = np.array([1.0, 0.0])
-    sim_b = np.array([0.0, 1.0])
-    np.testing.assert_allclose(ops.mean_scores(sim_a, sim_b), [0.5, 0.5])
-
-
 def test_geometric_mean_scores_matches_sqrt_product_for_positive_inputs():
     sim_a = np.array([0.64, 0.25])
     sim_b = np.array([0.25, 0.64])

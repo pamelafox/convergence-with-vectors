@@ -285,11 +285,6 @@
         Maximize the weaker connection: a candidate needs to be close to both words.
         <details><summary>Scoring formula</summary>min(a, b)</details>
       </div>
-      <label><input type="radio" name="operator" value="mean" aria-describedby="mean-help" />Mean</label>
-      <div class="operator-help" id="mean-help">
-        Maximize average similarity: a strong connection can compensate for a weak one.
-        <details><summary>Scoring formula</summary>(a + b) / 2</details>
-      </div>
       <label><input type="radio" name="operator" value="geometric_mean" aria-describedby="geometric-help" />Geometric mean</label>
       <div class="operator-help" id="geometric-help">
         Reward strength on both sides. If either similarity is zero or negative, the score is zero.
@@ -297,8 +292,6 @@
       </div>
       <p class="note">
         Here a and b are a candidate's cosine similarities to the two input words, not the two models.
-        With normalized embeddings, centroid and mean have equivalent rankings for a fixed pair
-        (apart from numerical rounding near ties), but different score scales.
         If the input vectors cancel exactly, centroid scores are all zero.
         <a href="operators.html">See the operators visualized</a>.
       </p>
@@ -452,7 +445,6 @@
         const explanations = {
           centroid: "It is closest to the normalized sum of the input vectors.",
           balanced: "Its weaker connection is strongest among eligible candidates.",
-          mean: "Its average similarity is highest among eligible candidates.",
           geometric_mean: "Its geometric mean of the clamped similarities is highest among eligible candidates.",
         };
         let reason = explanations[operator];
@@ -503,7 +495,7 @@
               return [a, level * level / a];
             });
           } else {
-            // Centroid rescales the mean by a fixed positive factor for this pair.
+            // With unit vectors, centroid's score is (a + b) / ‖a + b‖, so its contours are straight diagonals.
             points = [[Math.max(-1, 2 * level - 1), Math.min(1, 2 * level + 1)], [Math.min(1, 2 * level + 1), Math.max(-1, 2 * level - 1)]];
           }
           svg.appendChild(svgElement("polyline", { points: points.map(([a, b]) => `${x(a)},${y(b)}`).join(" "), fill: "none", stroke: "#8563a6", "stroke-width": 1.5 }));
@@ -532,7 +524,7 @@
           "Hover a dot for its word and scores. The dashed diagonal means equal similarity to both inputs. " +
           "Purple lines connect equal operator scores; higher scores lie toward the upper right. " +
           (operator === "geometric_mean" ? "Shaded regions score zero because at least one similarity is nonpositive. " : "") +
-          (operator === "centroid" ? "Contours use the equivalent mean ranking; if the input vectors cancel exactly, all scores tie at zero. " : "") +
+          (operator === "centroid" ? "Centroid's contours are straight diagonals because its score is proportional to the sum of the two similarities; if the input vectors cancel exactly, all scores tie at zero. " : "") +
           "These are actual similarities, not a 2D projection of embeddings. Axes run from −1 to 1 in both panels; different models' scores are not necessarily calibrated alike."
         ));
         return figure;
@@ -630,7 +622,6 @@
         content.appendChild(scroll);
         content.appendChild(element("p",
           "Compare choices and rankings, not score magnitudes across operators: their scales differ. " +
-          "Centroid and mean have equivalent rankings apart from numerical rounding near ties. " +
           "Green marks the played operator; yellow marks a different winning word.",
           "note"
         ));

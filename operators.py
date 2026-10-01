@@ -24,7 +24,7 @@ import numpy as np
 from embeddings import VocabEmbeddings, embed_texts
 
 #: Names of every operator, in the order they should be presented by default.
-OPERATOR_NAMES: list[str] = ["centroid", "balanced", "mean", "geometric_mean", "textual"]
+OPERATOR_NAMES: list[str] = ["centroid", "balanced", "geometric_mean", "textual"]
 
 #: Default phrase templates for the "textual" operator. ``{a}`` and ``{b}``
 #: are substituted with the two input words.
@@ -57,11 +57,6 @@ def balanced_scores(sim_a: np.ndarray, sim_b: np.ndarray) -> np.ndarray:
     return np.minimum(sim_a, sim_b)
 
 
-def mean_scores(sim_a: np.ndarray, sim_b: np.ndarray) -> np.ndarray:
-    """(cos(w, a) + cos(w, b)) / 2 for every candidate."""
-    return (sim_a + sim_b) / 2.0
-
-
 def geometric_mean_scores(sim_a: np.ndarray, sim_b: np.ndarray) -> np.ndarray:
     """Geometric mean of the two cosine similarities, with negatives clamped to 0.
 
@@ -84,7 +79,6 @@ def geometric_mean_scores(sim_a: np.ndarray, sim_b: np.ndarray) -> np.ndarray:
 #: touching any CLI or reporting code.
 PAIRWISE_OPERATORS: dict[str, Callable[[np.ndarray, np.ndarray], np.ndarray]] = {
     "balanced": balanced_scores,
-    "mean": mean_scores,
     "geometric_mean": geometric_mean_scores,
 }
 
