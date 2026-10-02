@@ -80,6 +80,23 @@
     margin-bottom: 10px;
   }
 
+  .code-with-figure {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .reveal .code-with-figure pre {
+    flex: 0 0 auto;
+    width: auto;
+    margin: 0;
+  }
+
+  .code-with-figure img {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
   .about-layout {
     display: grid;
     grid-template-columns: 1.4fr 0.6fr;
@@ -167,6 +184,11 @@
     text-align: center;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
+  }
+
+  /* --t is the score's position in its row, from 0 (lowest) to 1 (highest) */
+  .reveal table.model-compare tr.heat td[style] {
+    background: color-mix(in srgb, #2da44e calc(var(--t) * 55% + 8%), white);
   }
 
   .reveal table.model-compare small {

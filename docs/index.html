@@ -82,7 +82,7 @@
                 <video data-autoplay muted loop playsinline src="slides_assets/models_play.mp4" style="display:block; margin:0 auto; height:480px;"
                     aria-label="Recording of the game: MiniLM L6 and mxbai Embed Large start from piano and rain, say musician and umbrella, then piano and artist, then both say musician"></video>
                 <p style="text-align:center; margin-top:10px;">
-                    <a target="_blank" href="https://ca-api-n7wptl6izdmcs.wonderfulplant-33a4a3ab.northcentralus.azurecontainerapps.io/web/play.html">Play Convergence</a>
+                    <a target="_blank" href="https://tinyurl.com/play-convergence">tinyurl.com/play-convergence</a>
                 </p>
                 <aside class="notes">
                     Video: piano + rain → musician + umbrella → piano + artist → musician (MiniLM L6 vs mxbai, centroid).
@@ -112,36 +112,39 @@
             </section>
 
             <section>
-                <h3>Many embedding models</h3>
+                <h3>Open-weight vector embedding models</h3>
 
                 <table class="model-compare">
                     <thead>
                         <tr>
                             <th></th>
-                            <th class="c1">MiniLM L6</th>
-                            <th class="c2">MiniLM L12</th>
-                            <th class="c3">BGE Small</th>
-                            <th class="c4">Harrier 270M</th>
-                            <th class="c5">mxbai Embed Large</th>
-                            <th class="c6">Qwen3 Embedding 0.6B</th>
+                            <th class="c1"><a target="_blank" href="https://mteb-leaderboard.hf.space/models/sentence-transformers/all-MiniLM-L6-v2">MiniLM L6</a></th>
+                            <th class="c2"><a target="_blank" href="https://mteb-leaderboard.hf.space/models/sentence-transformers/all-MiniLM-L12-v2">MiniLM L12</a></th>
+                            <th class="c3"><a target="_blank" href="https://mteb-leaderboard.hf.space/models/BAAI/bge-small-en-v1.5">BGE Small</a></th>
+                            <th class="c4"><a target="_blank" href="https://mteb-leaderboard.hf.space/models/microsoft/harrier-oss-v1-270m">Harrier 270M</a></th>
+                            <th class="c5"><a target="_blank" href="https://mteb-leaderboard.hf.space/models/mixedbread-ai/mxbai-embed-large-v1">mxbai Embed Large</a></th>
+                            <th class="c6"><a target="_blank" href="https://mteb-leaderboard.hf.space/models/Qwen/Qwen3-Embedding-0.6B">Qwen3 Embedding 0.6B</a></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="published-by"><th>Published by</th><td>sentence-<wbr>transformers</td><td>sentence-<wbr>transformers</td><td>BAAI</td><td>Microsoft</td><td>Mixedbread</td><td>Qwen (Alibaba)</td></tr>
+                        <tr class="published-by"><th>Published by</th><td>Hugging Face</td><td>Hugging Face</td><td>BAAI</td><td>Microsoft</td><td>Mixedbread</td><td>Qwen</td></tr>
                         <tr><th>Parameters</th><td>23 <small>M</small></td><td>33 <small>M</small></td><td>33 <small>M</small></td><td>268 <small>M</small></td><td>335 <small>M</small></td><td>596 <small>M</small></td></tr>
-                        <tr><th>Embedding dimension</th><td>384</td><td>384</td><td>384</td><td>640</td><td>1,024</td><td>1,024</td></tr>
+                        <tr><th>Dimensions</th><td>384</td><td>384</td><td>384</td><td>640</td><td>1,024</td><td>1,024</td></tr>
                         <tr><th>Max tokens</th><td>256</td><td>128</td><td>512</td><td>32,768</td><td>512</td><td>32,768</td></tr>
-                        <tr><th>MTEB (eng, v2)</th><td>59.0</td><td>—</td><td>64.3</td><td>—</td><td>66.3</td><td>70.5</td></tr>
-                        <tr><th>MTEB (multilingual)</th><td>41.4</td><td>—</td><td>43.8</td><td>66.6</td><td>45.9</td><td>64.3</td></tr>
+                        <tr class="published-by"><th>Languages</th><td>English</td><td>English</td><td>English</td><td>Multilingual</td><td>English</td><td>Multilingual</td></tr>
+                        <tr class="heat"><th><a target="_blank" href="https://mteb-leaderboard.hf.space/benchmark/MTEB(eng%2C%20v2)">MTEB (eng, v2)</a></th><td style="--t:0">59.0</td><td>—</td><td style="--t:0.46">64.3</td><td>—</td><td style="--t:0.63">66.3</td><td style="--t:1">70.5</td></tr>
+                        <tr class="heat"><th><a target="_blank" href="https://mteb-leaderboard.hf.space/benchmark/MTEB(Multilingual%2C%20v2)">MTEB (multi)</a></th><td style="--t:0">41.4</td><td>—</td><td style="--t:0.1">43.8</td><td style="--t:1">66.6</td><td style="--t:0.18">45.9</td><td style="--t:0.91">64.3</td></tr>
                     </tbody>
                 </table>
-                <p class="smaller">From the <a target="_blank" href="https://huggingface.co/spaces/mteb/leaderboard">MTEB leaderboard</a>.</p>
+                <p class="smaller">🔗 <a target="_blank" href="https://huggingface.co/spaces/mteb/leaderboard">MTEB leaderboard</a></p>
                 <aside class="notes">Small to large: 23M to 596M parameters, 384 to 1024 dimensions. MiniLM L12 and Harrier 270M have no MTEB (eng, v2) mean.</aside>
             </section>
 
             <section>
                 <h3>Generating embeddings with Python</h3>
 
+                <p>Download model weights from <a target="_blank" href="https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2">Hugging Face</a>
+                    <br>and generate embeddings with <a target="_blank" href="https://sbert.net/">SentenceTransformer</a>:</p>
                 <pre><code class="language-python" data-trim>
 from sentence_transformers import SentenceTransformer
 
@@ -153,31 +156,31 @@ vectors = model.encode(["fire", "whale"],
 print(vectors.shape)  # (2, 384)
                 </code></pre>
 
-                <p>Runs locally on CPU, models download from Hugging Face.</p>
-                <p class="smaller">Also: <a target="_blank" href="https://learn.microsoft.com/azure/ai-foundry/openai/concepts/understand-embeddings">OpenAI models on Microsoft Foundry</a>, Ollama, …</p>
+                <p class="smaller">🔗 Full code: <a target="_blank" href="https://github.com/pamelafox/convergence-with-vectors/blob/main/embed.py">embed.py</a></p>
             </section>
 
             <section>
                 <h3>Comparing vectors: cosine similarity</h3>
 
-                <img src="slides_assets/distance_cosine.svg" alt="Two vectors with the angle between them used for cosine similarity" style="width: 250px; float:right; margin-left:30px;">
-
                 <p>How closely do two vectors point in the same direction?</p>
-                <ul>
-                    <li><strong>1</strong>: same direction</li>
-                    <li><strong>0</strong>: unrelated</li>
-                    <li><strong>-1</strong>: opposite</li>
-                </ul>
 
+                <div class="code-with-figure">
                 <pre><code class="language-python" data-trim>
-# Normalized vectors: dot product = cosine similarity
-fire, whale, flame = model.encode(
-    ["fire", "whale", "flame"],
+fire, flame = model.encode(
+    ["fire", "flame"],
     normalize_embeddings=True)
-fire @ flame   # 0.80
-fire @ whale   # 0.30
+
+# Full formula
+np.dot(fire, flame) / (
+    np.linalg.norm(fire) *
+    np.linalg.norm(flame))  # 0.80
+
+# Normalized (length 1), so just:
+np.dot(fire, flame)         # 0.80
                 </code></pre>
-                <p class="smaller">Scales differ by model: fire · whale is 0.30 with MiniLM L6, but 0.63 with Qwen3.</p>
+                <img src="slides_assets/cosine_angles.svg" alt="Arrows for fire, flame, and whale: flame is 37 degrees from fire (cosine 0.80), whale is 72 degrees from fire (cosine 0.30)">
+                </div>
+                <p class="smaller">🔗 Full code: <a target="_blank" href="https://github.com/pamelafox/convergence-with-vectors/blob/main/cosine.py">cosine.py</a></p>
             </section>
 
             <section>
@@ -206,7 +209,7 @@ fire @ whale   # 0.30
                     <br>
                     <img src="slides_assets/screenshot_vectors_comparison.png" alt="Screenshot of a tool comparing vector similarities across models" style="width: 600px;">
                 </a>
-                <p class="smaller">More in my blog post:
+                <p class="smaller">🔗 More in my blog post:
                     <a target="_blank" href="http://blog.pamelafox.org/2025/05/a-visual-exploration-of-vector.html">A visual exploration of vector embeddings</a></p>
             </section>
 
@@ -234,7 +237,7 @@ fire @ whale   # 0.30
                 <p>Average the two vectors, find the closest word to the midpoint.</p>
                 <pre><code class="language-python" data-trim>
 query = normalize(vec_a + vec_b)
-scores = vocab.vectors @ query
+scores = np.dot(vocab.vectors, query)
                 </code></pre>
                 <p class="smaller">Ranks the same as <code>s_a + s_b</code>, so one very strong link can win.</p>
                 <p><a target="_blank" href="https://ca-api-n7wptl6izdmcs.wonderfulplant-33a4a3ab.northcentralus.azurecontainerapps.io/web/operators.html#centroid">📐 See it in 3D</a></p>
@@ -271,7 +274,7 @@ scores = np.sqrt(
 phrase = f"{word_a} and {word_b}"
 phrase_vec = model.encode(
     [phrase], normalize_embeddings=True)[0]
-scores = vocab.vectors @ phrase_vec
+scores = np.dot(vocab.vectors, phrase_vec)
                 </code></pre>
                 <p class="smaller">Behaves a lot like centroid in practice.</p>
                 <p><a target="_blank" href="https://ca-api-n7wptl6izdmcs.wonderfulplant-33a4a3ab.northcentralus.azurecontainerapps.io/web/operators.html#compare">📐 Compare all four</a></p>
@@ -294,13 +297,13 @@ for round_number in range(1, max_rounds + 1):
     pair = picks
 return "round_limit", max_rounds
                 </code></pre>
-                <p class="smaller">Full code: <a target="_blank" href="https://github.com/pamelafox/convergence-with-vectors/blob/main/simulate_convergence.py">simulate_convergence.py</a></p>
+                <p class="smaller">🔗 Full code: <a target="_blank" href="https://github.com/pamelafox/convergence-with-vectors/blob/main/simulate_convergence.py">simulate_convergence.py</a></p>
             </section>
 
             <section class="heading-only">
                 <h2>Let's play again! 🎲</h2>
                 <p style="text-align:center; margin-top:40px; font-size:1.3em;">
-                    <a target="_blank" href="https://ca-api-n7wptl6izdmcs.wonderfulplant-33a4a3ab.northcentralus.azurecontainerapps.io/web/play.html">Play Convergence</a>
+                    <a target="_blank" href="https://tinyurl.com/play-convergence">tinyurl.com/play-convergence</a>
                 </p>
                 <aside class="notes">
                     Try the balanced operator and watch them struggle. Then try random models each round.
@@ -369,7 +372,7 @@ uv run model_battle.py --games 100 --operator centroid
                 <h3>Best benchmark ≠ best teammate</h3>
 
                 <table class="compact">
-                    <thead><tr><th>Model</th><th>Converges vs. others</th><th>Avg rounds</th><th>Loops</th><th>MTEB (eng)</th><th>MTEB (multi)</th></tr></thead>
+                    <thead><tr><th>Model</th><th>Converges vs. others</th><th>Avg rounds</th><th>Loops</th><th><a target="_blank" href="https://mteb-leaderboard.hf.space/benchmark/MTEB(eng%2C%20v2)">MTEB (eng)</a></th><th><a target="_blank" href="https://mteb-leaderboard.hf.space/benchmark/MTEB(Multilingual%2C%20v2)">MTEB (multi)</a></th></tr></thead>
                     <tbody>
                         <tr><td>MiniLM L6</td><td>88%</td><td>2.6</td><td>12%</td><td>59.0</td><td>41.4</td></tr>
                         <tr><td>MiniLM L12</td><td>87%</td><td>2.5</td><td>12%</td><td>–</td><td>–</td></tr>
@@ -459,7 +462,7 @@ uv run model_battle.py --games 100 --operator centroid
 
                 <p>Code, slides, and the game:<br>
                     <span class="aka">github.com/pamelafox/convergence-with-vectors</span></p>
-                <p>Play it: <a target="_blank" href="https://ca-api-n7wptl6izdmcs.wonderfulplant-33a4a3ab.northcentralus.azurecontainerapps.io/web/play.html">Convergence</a> ·
+                <p>Play it: <a target="_blank" href="https://tinyurl.com/play-convergence">tinyurl.com/play-convergence</a> ·
                     <a target="_blank" href="https://ca-api-n7wptl6izdmcs.wonderfulplant-33a4a3ab.northcentralus.azurecontainerapps.io/web/operators.html">How the operators work</a></p>
                 <p>Find me online at <a target="_blank" href="https://www.pamelafox.org">pamelafox.org</a></p>
             </section>

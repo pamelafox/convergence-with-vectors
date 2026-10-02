@@ -46,8 +46,8 @@ All scoring happens in Python: the web pages call the backend rather than reimpl
 * Add dependencies with `uv add <pkg>` (or `uv add --dev <pkg>`), which updates `pyproject.toml` and `uv.lock`.
 * Run scripts and tools with `uv run`, e.g. `uv run compare_pair.py ...`.
 * Run the web app with `uv run build_db.py` (once) and then `uv run fastapi dev backend/app.py`.
-* Embedding models come from Microsoft Foundry (needs `AZURE_OPENAI_ENDPOINT` and Entra auth), Ollama (local), and
-  `sentence-transformers` (downloaded from Hugging Face).
+* Embedding models are `sentence-transformers` models from Hugging Face, listed in `embeddings.MODELS`.
+  The `http/` folder has sample requests for Microsoft Foundry (needs `AZURE_OPENAI_ENDPOINT` and Entra auth) and Ollama.
 
 ## Conventions
 
@@ -62,7 +62,6 @@ All scoring happens in Python: the web pages call the backend rather than reimpl
   or run `pre-commit run --all-files` if pre-commit is installed.
 * Scripts are demo code for a live talk: keep them short, readable, and runnable top-to-bottom,
   and print results with `rich` where it helps the audience.
-* Access models through the `openai` client library (both Foundry and Ollama expose
-  OpenAI-compatible endpoints) or through `sentence-transformers` for local models.
+* Load models with `sentence-transformers`, running on CPU.
 * Never hardcode secrets; read tokens from environment variables, optionally loaded via `python-dotenv`.
 * Run the tests with `uv run pytest tests/`; they use small synthetic vectors and fake embedders, so no model downloads are needed.

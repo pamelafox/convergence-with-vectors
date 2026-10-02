@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -307 510 327" font-family="sans-serif" font-size="34">
+<defs><marker id="tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs>
+<path d="M70,0 A70,70 0 0 0 56.0,-42.0" fill="none" stroke="#c2410c" stroke-width="2" stroke-dasharray="5 4"/>
+<path d="M120,0 A120,120 0 0 0 36.4,-114.4" fill="none" stroke="#1d4ed8" stroke-width="2" stroke-dasharray="5 4"/>
+<line x1="0" y1="0" x2="280.0" y2="0.0" stroke="#4b5563" stroke-width="4" marker-end="url(#tip)"/>
+<text x="294.0" y="8.0" fill="#4b5563"><tspan font-weight="bold">fire</tspan></text>
+<line x1="0" y1="0" x2="224.0" y2="-168.1" stroke="#c2410c" stroke-width="4" marker-end="url(#tip)"/>
+<text x="238.0" y="-172.1" fill="#c2410c"><tspan font-weight="bold">flame</tspan><tspan x="238.0" dy="34" font-size="28">cos 0.80 · 37°</tspan></text>
+<line x1="0" y1="0" x2="84.9" y2="-266.8" stroke="#1d4ed8" stroke-width="4" marker-end="url(#tip)"/>
+<text x="98.9" y="-270.8" fill="#1d4ed8"><tspan font-weight="bold">whale</tspan><tspan x="98.9" dy="34" font-size="28">cos 0.30 · 72°</tspan></text>
+</svg>

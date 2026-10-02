@@ -71,15 +71,27 @@ Alternatively, activate it with `source .venv/bin/activate` and drop the `uv run
 
 ## Using embedding models
 
-The talk compares embedding models from multiple sources:
+The game and scripts use six [sentence-transformers](https://sbert.net/) models from Hugging Face,
+listed in [embeddings.py](embeddings.py): `minilm-l6`, `minilm-l12`, `bge-small`, `harrier-270m`,
+`mxbai-embed-large`, and `qwen3-embedding-0.6b`. They run locally on CPU and download on first use.
 
-| Source | Example models | Setup |
-| -------- | ---------------- | ------- |
-| [Microsoft Foundry](https://ai.azure.com/) | `text-embedding-3-small`, `text-embedding-3-large` | Requires a Foundry resource with a deployed embedding model |
-| [Ollama](https://ollama.com/) | `nomic-embed-text`, `embeddinggemma` | Requires Ollama installed locally, then `ollama pull <model>` |
-| [sentence-transformers](https://sbert.net/) | `all-MiniLM-L6-v2`, `all-mpnet-base-v2`, `microsoft/harrier-oss-v1-270m` | Downloads models from Hugging Face on first use |
+To embed some words with one model and compare every pair with cosine similarity, run:
 
-To use Foundry models, deploy an embedding model (named after the model, like `text-embedding-3-small`)
+```shell
+uv run embed.py fire whale flame
+uv run embed.py fire whale flame --model qwen3-embedding-0.6b
+```
+
+To compute cosine similarity with the full formula and with `np.dot` (the same for normalized vectors),
+and redraw the angle diagram used in the slides, run:
+
+```shell
+uv run cosine.py fire flame whale --svg docs/slides_assets/cosine_angles.svg
+```
+
+The [http](http) folder also contains sample REST Client requests for the
+[Microsoft Foundry](https://ai.azure.com/) and [Ollama](https://ollama.com/) embeddings endpoints.
+To use the Foundry requests, deploy an embedding model (named after the model, like `text-embedding-3-small`)
 in a Foundry resource, then set the endpoint and a Microsoft Entra access token:
 
 ```shell
@@ -89,44 +101,6 @@ export AZURE_OPENAI_TOKEN=$(az account get-access-token --resource https://cogni
 ```
 
 Your account needs the "Cognitive Services OpenAI User" role on the Foundry resource.
-
-To use Ollama models, pull the embedding model first:
-
-```shell
-ollama pull nomic-embed-text
-```
-
-Then compute normalized embeddings with the local model:
-
-```shell
-uv run ollama.py fire whale
-```
-
-Pass `--model` to use another locally installed Ollama embedding model.
-
-To compute normalized embeddings locally with Microsoft's 270-million-parameter
-[Harrier](https://huggingface.co/microsoft/harrier-oss-v1-270m) model, run:
-
-```shell
-uv run harrier.py fire whale
-```
-
-The model is downloaded from Hugging Face the first time the script runs.
-
-To compare cosine similarities from the CPU-friendly
-[`all-MiniLM-L6-v2`](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
-and [`all-MiniLM-L12-v2`](https://huggingface.co/sentence-transformers/all-MiniLM-L12-v2)
-models, run:
-
-```shell
-uv run minilm.py fire whale
-```
-
-You can pass more than two texts to compare every pair. Both models are downloaded from
-Hugging Face on first use and explicitly run on CPU.
-
-The [http](http) folder contains sample REST Client requests for the Foundry and Ollama
-embeddings endpoints, which are a quick way to check that your setup works.
 
 ## Comparing word-combination operators
 
@@ -273,7 +247,6 @@ The app deploys to [Azure Container Apps](https://learn.microsoft.com/azure/cont
 [simple-fastapi-container](https://github.com/pamelafox/simple-fastapi-container) template.
 The [Dockerfile](Dockerfile) installs CPU-only torch, downloads the Hugging Face models, and builds the SQLite
 database at image build time, so the container needs no GPU and makes no Hugging Face requests at runtime.
-Ollama models aren't included in the deployed app, since the container doesn't run an Ollama server.
 The image is built in Azure Container Registry, so Docker doesn't need to be running locally.
 
 1. Sign in and create an environment:
@@ -307,8 +280,8 @@ azd provision
 | Path | Purpose |
 | ------ | --------- |
 | [docs/index.html](docs/index.html) | The reveal.js slides for the talk, published with GitHub Pages |
-| [ollama.py](ollama.py) | Computes local embeddings with Ollama |
-| [harrier.py](harrier.py) | Computes local embeddings with Microsoft Harrier |
+| [embed.py](embed.py) | Embeds words with one model and compares every pair with cosine similarity |
+| [cosine.py](cosine.py) | Computes cosine similarity with the full formula and with `np.dot`, and draws the angles as an SVG |
 | [vocab.py](vocab.py) | Vocabulary file parsing for the word-combination experiments |
 | [embeddings.py](embeddings.py) | Model registry and cached vocabulary embeddings |
 | [operators.py](operators.py) | The four word-combination operators and their scoring math |
@@ -325,7 +298,6 @@ azd provision
 | [data/vocab_1000.txt](data/vocab_1000.txt) | ~1000-word vocabulary used by the web app |
 | [web/](web) | Pages for the web app: the game and the operator explainer |
 | [tests/](tests) | Focused pytest tests for the modules above |
-| [minilm.py](minilm.py) | Compares cosine similarities from two MiniLM models on CPU |
 | [docs/slides_assets/](docs/slides_assets) | CSS, images, and video used by the slides |
 | [http/](http) | Sample embeddings requests for the VS Code REST Client extension |
 | [AGENTS.md](AGENTS.md) | Context and conventions for AI coding agents |
