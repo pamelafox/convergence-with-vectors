@@ -1,0 +1,12 @@
+.git*
+.venv/
+.azure/
+.env
+**/__pycache__/
+**/*.pyc
+.embedding_cache/
+.pytest_cache/
+.ruff_cache/
+data/convergence.db
+tests/
+infra/

@@ -16,7 +16,8 @@ which explores vector embeddings by recreating the improv word game
 * [Setting up the environment](#setting-up-the-environment)
 * [Using embedding models](#using-embedding-models)
 * [Comparing word-combination operators](#comparing-word-combination-operators)
-* [Playing Convergence in the browser](#playing-convergence-in-the-browser)
+* [Running the web app](#running-the-web-app)
+* [Deploying to Azure Container Apps](#deploying-to-azure-container-apps)
 * [Repository structure](#repository-structure)
 
 ## The Convergence game
@@ -42,13 +43,9 @@ A round converges when both players pick the same word.
 
 ## Viewing the slides
 
-The slides are a single [reveal.js](https://revealjs.com/) page in [index.html](index.html).
-View them [published on GitHub pages](https://pamelafox.github.io/convergence-with-vectors/),
-or run a local Python server in the repo:
-
-```shell
-python -m http.server 8000
-```
+The slides are a single [reveal.js](https://revealjs.com/) page in [docs/index.html](docs/index.html),
+published with GitHub Pages at [pamelafox.github.io/convergence-with-vectors](https://pamelafox.github.io/convergence-with-vectors/).
+Their demo links point to the deployed web app; see [Running the web app](#running-the-web-app).
 
 ## Setting up the environment
 
@@ -79,7 +76,7 @@ The talk compares embedding models from multiple sources:
 | Source | Example models | Setup |
 | -------- | ---------------- | ------- |
 | [Microsoft Foundry](https://ai.azure.com/) | `text-embedding-3-small`, `text-embedding-3-large` | Requires a Foundry resource with a deployed embedding model |
-| [Ollama](https://ollama.com/) | `nomic-embed-text`, `mxbai-embed-large` | Requires Ollama installed locally, then `ollama pull <model>` |
+| [Ollama](https://ollama.com/) | `nomic-embed-text`, `embeddinggemma` | Requires Ollama installed locally, then `ollama pull <model>` |
 | [sentence-transformers](https://sbert.net/) | `all-MiniLM-L6-v2`, `all-mpnet-base-v2`, `microsoft/harrier-oss-v1-270m` | Downloads models from Hugging Face on first use |
 
 To use Foundry models, deploy an embedding model (named after the model, like `text-embedding-3-small`)
@@ -207,55 +204,109 @@ required):
 uv run pytest tests/
 ```
 
-## Playing Convergence in the browser
+### Model battle
 
-The [web](web) folder has a static, GitHub-Pages-friendly version of the Convergence simulation:
-[**web/play.html**](web/play.html) lets you pick two starting words, two models, and an operator,
-then runs the same round-by-round simulation as `simulate_convergence.py` entirely client-side.
-The page opens in **Game night** mode, an animated, model-filled game circle that counts down before
-each simultaneous shout, starts from a random pair, and celebrates convergence with confetti.
-Switch to **Vector lab** on the same page to keep using the full controls and detailed score,
-candidate, contour, and operator-comparison views described below.
-Type in either word box for native HTML vocabulary suggestions, or use **Random words** to choose
-two distinct starting words. Operator radio buttons explain each scoring rule and expose its formula.
-Expand **Why these words?** for any round to see each model's top five candidates, similarities to
-both inputs, winning score margin (or tie-break), and a scatterplot of all eligible candidates with
-equal-score contours. The round table highlights agreement and links repeated pairs back to their
-earlier round; stalled games report the reason and the attempted round.
-Within each model's round details, expand **What would another operator choose?** to compare all
-three operators' winners and top five candidates for that same input pair. Different winning words
-are highlighted; this comparison does not change the game or replay subsequent rounds.
+Play many games of Convergence between every pair of models, all starting from the same random word pairs,
+and compare how often each pairing converges, how many rounds it takes, and how often it loops.
+It reads vectors from the web app's database, so build that first with `uv run build_db.py`:
+
+```shell
+uv run model_battle.py --games 200 --operator centroid --output-json battle.json
+```
+
+A model playing against itself always converges in round 1, since both players compute exactly the same thing.
+
+## Running the web app
+
+The web app is a [FastAPI](https://fastapi.tiangolo.com/) backend in [backend/](backend) that serves
+the pages in [web/](web) and a JSON API. All the scoring runs in Python, using the same
+`operators.py` and `simulate_convergence.py` code as the command-line scripts.
+
+Vocabulary embeddings are stored in a SQLite database with a single `embeddings` table. Words from the
+vocabulary are the candidates (`in_vocab = 1`). Anything embedded on demand, like starting words outside the
+vocabulary or `textual` phrases, is cached in the same table (`in_vocab = 0`) and never becomes a candidate.
+
+1. Build the database (embeds the ~1000-word [data/vocab_1000.txt](data/vocab_1000.txt) with each model):
+
+    ```shell
+    uv run build_db.py
+    ```
+
+    This embeds with MiniLM L6, MiniLM L12, [BGE Small](https://huggingface.co/BAAI/bge-small-en-v1.5),
+    Harrier 270M, [mxbai Embed Large](https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1), and
+    [Qwen3 Embedding 0.6B](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B) (downloaded from Hugging Face on first use, about 3.5 GB in total).
+
+2. Start the server:
+
+    ```shell
+    uv run fastapi dev backend/app.py
+    ```
+
+3. Open [http://localhost:8000](http://localhost:8000) for the game (it redirects to
+   [/web/play.html](http://localhost:8000/web/play.html)), or
+   [/docs](http://localhost:8000/docs) for the interactive API docs.
+
+| Endpoint | Returns |
+| --- | --- |
+| `GET /api/models` | Models with a vocabulary in the database, with display labels |
+| `GET /api/vocab?model=` | The candidate vocabulary |
+| `GET /api/similarities?model=&a=&b=` | Every vocabulary word's similarity to `a` and to `b` |
+| `GET /api/combine?model=&a=&b=&operator=&top_k=&template=` | Ranked candidates for any operator, including `textual` |
+| `POST /api/simulate` | A full Convergence game between two models, or random models each round (`random_models`) |
+
+[**web/play.html**](web/play.html) plays an animated game of Convergence: two players in a game circle
+count down, shout their words simultaneously, and celebrate convergence with confetti. Each game starts from
+two random vocabulary words. Choose the operator the players use (with a link to its explanation), and either
+pick the same two models for the whole game or let the backend draw two random models every round.
+The round-by-round history shows which model said each word.
 
 [**web/operators.html**](web/operators.html) is a visual explainer for the operators' math, with the view that fits each one best.
 Centroid and balanced use a rotatable 3D dome (built with three.js, loaded from a CDN) that places every word vector
 relative to the plane of the two input words: centroid shows each word's angle to the midpoint vector, and balanced grows
 circles around both input words. Geometric mean shows each word's two similarities as a rectangle next to the square with
-the same area. A side-by-side table compares each operator's top 5.
+the same area. A side-by-side table compares each operator's top 5, including `textual`. Links at the top jump to each operator.
 
-There's no model inference in the browser: `export_web_embeddings.py` precomputes normalized
-embeddings for a closed ~1000-word vocabulary ([data/vocab_1000.txt](data/vocab_1000.txt)) for each
-model and writes them to JSON files under `web/data/`, which the page simply fetches. Because of
-this, the web version only supports the vocabulary-only operators (`centroid`, `balanced`,
-`geometric_mean`) and requires both starting words to come from that vocabulary — the `textual`
-operator, which needs to embed an arbitrary phrase at request time, isn't available in the browser.
+## Deploying to Azure Container Apps
 
-To regenerate the JSON files after changing the vocabulary or model list:
+The app deploys to [Azure Container Apps](https://learn.microsoft.com/azure/container-apps/) with the
+[Azure Developer CLI](https://aka.ms/azd), based on the
+[simple-fastapi-container](https://github.com/pamelafox/simple-fastapi-container) template.
+The [Dockerfile](Dockerfile) installs CPU-only torch, downloads the Hugging Face models, and builds the SQLite
+database at image build time, so the container needs no GPU and makes no Hugging Face requests at runtime.
+Ollama models aren't included in the deployed app, since the container doesn't run an Ollama server.
+The image is built in Azure Container Registry, so Docker doesn't need to be running locally.
+
+1. Sign in and create an environment:
+
+    ```shell
+    azd auth login
+    azd env new convergence
+    ```
+
+    The region defaults to North Central US. To use another region, run `azd env set AZURE_LOCATION <region>`.
+
+2. Provision the resources and deploy the code:
+
+    ```shell
+    azd up
+    ```
+
+This creates a resource group with a Container Apps environment, a container app (4 CPU, 8 GiB),
+a container registry, a managed identity for pulling images, and a Log Analytics workspace.
+
+The app scales to zero when idle, so the first request after a quiet period waits for a container to start.
+To keep one container warm (for example, during a talk), then scale back down afterwards:
 
 ```shell
-uv run export_web_embeddings.py --vocab data/vocab_1000.txt --output-dir web/data
-```
-
-To try it locally, run a static server from the repo root and open `web/play.html`:
-
-```shell
-python -m http.server 8000
+azd env set CONTAINER_MIN_REPLICAS 1
+azd provision
 ```
 
 ## Repository structure
 
 | Path | Purpose |
 | ------ | --------- |
-| [index.html](index.html) | The reveal.js slides for the talk |
+| [docs/index.html](docs/index.html) | The reveal.js slides for the talk, published with GitHub Pages |
 | [ollama.py](ollama.py) | Computes local embeddings with Ollama |
 | [harrier.py](harrier.py) | Computes local embeddings with Microsoft Harrier |
 | [vocab.py](vocab.py) | Vocabulary file parsing for the word-combination experiments |
@@ -265,13 +316,16 @@ python -m http.server 8000
 | [compare_pair.py](compare_pair.py) | CLI: compare all operators for one word pair |
 | [compare_batch.py](compare_batch.py) | CLI: run a batch of word pairs from a CSV file |
 | [simulate_convergence.py](simulate_convergence.py) | CLI: simulate the Convergence game between two models |
+| [model_battle.py](model_battle.py) | CLI: battle every pair of models over many games and report convergence rates |
+| [build_db.py](build_db.py) | CLI: embed the vocabulary and write the SQLite database for the web app |
+| [backend/](backend) | FastAPI app (`app.py`) and SQLite embedding store (`db.py`) |
+| [Dockerfile](Dockerfile), [azure.yaml](azure.yaml), [infra/](infra) | Container image and Azure Developer CLI infrastructure (Bicep) for Azure Container Apps |
 | [data/sample_vocab.txt](data/sample_vocab.txt) | Sample candidate vocabulary |
 | [data/sample_pairs.csv](data/sample_pairs.csv) | Sample word pairs for `compare_batch.py` |
-| [data/vocab_1000.txt](data/vocab_1000.txt) | ~1000-word vocabulary used by the browser game |
-| [export_web_embeddings.py](export_web_embeddings.py) | CLI: precompute and export vocabulary embeddings as JSON for the browser game |
-| [web/](web) | Static, GitHub-Pages-friendly browser version of the Convergence game |
+| [data/vocab_1000.txt](data/vocab_1000.txt) | ~1000-word vocabulary used by the web app |
+| [web/](web) | Pages for the web app: the game and the operator explainer |
 | [tests/](tests) | Focused pytest tests for the modules above |
 | [minilm.py](minilm.py) | Compares cosine similarities from two MiniLM models on CPU |
-| [slides_assets/](slides_assets) | CSS and images used by the slides |
+| [docs/slides_assets/](docs/slides_assets) | CSS, images, and video used by the slides |
 | [http/](http) | Sample embeddings requests for the VS Code REST Client extension |
 | [AGENTS.md](AGENTS.md) | Context and conventions for AI coding agents |

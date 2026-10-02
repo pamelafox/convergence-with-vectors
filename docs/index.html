@@ -1,0 +1,490 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<title>Convergence in vector space</title>
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.1.0/dist/reset.css">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.1.0/dist/reveal.css">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.1.0/dist/theme/simple.css" id="theme">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inconsolata|Roboto:300,400,500|Work+Sans:400,700">
+        <link rel="stylesheet" href="slides_assets/a11y-dark.min.css">
+		<link rel="stylesheet" href="slides_assets/slides.css">
+	</head>
+    <body>
+    <div class="reveal">
+        <div class="slides">
+
+            <section class="heading-only" style="padding-top:5%">
+                <h1 style="font-size:2.5em;">
+                    Convergence<br>
+                    in vector space
+                </h1>
+
+                <h2 style="font-size:1.2em;">
+                    <a target="_blank" href="https://github.com/pamelafox/convergence-with-vectors">
+                        github.com/pamelafox/convergence-with-vectors
+                    </a>
+                </h2>
+
+                <div style="margin-top:40px;">
+                    Pamela Fox · PyBay 2026<br>
+                    <a target="_blank" href="https://www.pamelafox.org/">pamelafox.org</a>
+                </div>
+            </section>
+
+            <section>
+                <div class="about-layout">
+                    <div>
+                        <p class="kicker">About me</p>
+                        <h2>Pamela Fox</h2>
+                        <p class="about-role">Principal Cloud Advocate at Microsoft</p>
+                        <p class="about-history">Formerly: UC Berkeley, Coursera,<br>Khan Academy, Google</p>
+                        <table class="about-links">
+                            <tbody>
+                                <tr><td>Twitter</td><td><a href="https://twitter.com/pamelafox" target="_blank" rel="noopener noreferrer">🔗 @pamelafox</a></td></tr>
+                                <tr><td>LinkedIn</td><td><a href="https://www.linkedin.com/in/pamela-s-fox/" target="_blank" rel="noopener noreferrer">🔗 linkedin.com/in/pamela-s-fox</a></td></tr>
+                                <tr><td>GitHub</td><td><a href="https://github.com/pamelafox" target="_blank" rel="noopener noreferrer">🔗 github.com/pamelafox</a></td></tr>
+                                <tr><td>Website</td><td><a href="https://pamelafox.org" target="_blank" rel="noopener noreferrer">🔗 pamelafox.org</a></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <img class="about-photo" src="https://pamelafox.github.io/ai-powered-presentation-workflow/photo_pamela_olaf.jpg" alt="Pamela Fox smiling with an Olaf statue">
+                </div>
+            </section>
+
+            <section>
+                <h3>Let's play Convergence</h3>
+
+                <ol>
+                    <li>Two players face each other.
+                    <li>Everyone counts down, "3..2..1"
+                    <li>They both yell a word at the same time,<br>like <strong>"fire"</strong> and <strong>"whale"</strong>.
+                    <li>Everyone thinks:<br>"What single word is <em>between</em> those two words?"
+                    <li>Two new players count down and yell their words,<br>like <strong>"blubber"</strong> and <strong>"engine"</strong>.
+                    <li>Same word? Everyone wins! 🎉<br>Different words? Keep going.
+                </ol>
+                <aside class="notes">
+                    Introduce the game from improv class. Emphasize: you can't plan, you can only think about the two words.
+                </aside>
+            </section>
+
+            <section class="heading-only">
+                <h2>Your turn! 🎤</h2>
+                <p style="text-align:center; font-size:2em; margin-top:40px;">3… 2… 1…</p>
+                <aside class="notes">
+                    Pick two volunteers. Write the starting words down: they'll be the models' starting words next.
+                </aside>
+            </section>
+
+            <section>
+                <h3 style="text-align:center;">Now the models play!</h3>
+                <video data-autoplay muted loop playsinline src="slides_assets/models_play.mp4" style="display:block; margin:0 auto; height:480px;"
+                    aria-label="Recording of the game: MiniLM L6 and mxbai Embed Large start from piano and rain, say musician and umbrella, then piano and artist, then both say musician"></video>
+                <p style="text-align:center; margin-top:10px;">
+                    <a target="_blank" href="https://ca-api-n7wptl6izdmcs.wonderfulplant-33a4a3ab.northcentralus.azurecontainerapps.io/web/play.html">Play Convergence</a>
+                </p>
+                <aside class="notes">
+                    Video: piano + rain → musician + umbrella → piano + artist → musician (MiniLM L6 vs mxbai, centroid).
+                    Live: type in the audience's starting words, MiniLM L6 vs mxbai, centroid. Then clear the words and play a random game.
+                </aside>
+            </section>
+
+            <section class="heading-only">
+                <h2>How did that work?? 🤔</h2>
+            </section>
+
+            <section class="heading-only">
+                <h2>Words as vectors</h2>
+                <img src="slides_assets/vectors.svg" alt="Vector space diagram with an oranges vector and apples vector" style="width: 400px; margin-top:-20px;">
+            </section>
+
+            <section>
+                <h3>What are vectors?</h3>
+
+                <img src="slides_assets/vectors_with_numbers.svg" alt="Vector space diagram with an oranges vector and apples vector, with their coordinates" style="width: 500px; float:right; margin-left: 20px; margin-top:-60px;">
+
+                <p>Vectors are lists of numbers that represent items in a high-dimensional space.</p>
+                <p>Each number is a <strong>dimension</strong>.</p>
+                <p>An embedding model turns text into a vector:</p>
+                <p><code>"fire"</code> → <code>[-0.030, 0.089, 0.008, 0.048, …]</code><br>
+                   <span class="smaller">(384 dimensions with MiniLM L6)</span></p>
+            </section>
+
+            <section>
+                <h3>Many embedding models</h3>
+
+                <table class="model-compare">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th class="c1">MiniLM L6</th>
+                            <th class="c2">MiniLM L12</th>
+                            <th class="c3">BGE Small</th>
+                            <th class="c4">Harrier 270M</th>
+                            <th class="c5">mxbai Embed Large</th>
+                            <th class="c6">Qwen3 Embedding 0.6B</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="published-by"><th>Published by</th><td>sentence-<wbr>transformers</td><td>sentence-<wbr>transformers</td><td>BAAI</td><td>Microsoft</td><td>Mixedbread</td><td>Qwen (Alibaba)</td></tr>
+                        <tr><th>Parameters</th><td>23 <small>M</small></td><td>33 <small>M</small></td><td>33 <small>M</small></td><td>268 <small>M</small></td><td>335 <small>M</small></td><td>596 <small>M</small></td></tr>
+                        <tr><th>Embedding dimension</th><td>384</td><td>384</td><td>384</td><td>640</td><td>1,024</td><td>1,024</td></tr>
+                        <tr><th>Max tokens</th><td>256</td><td>128</td><td>512</td><td>32,768</td><td>512</td><td>32,768</td></tr>
+                        <tr><th>MTEB (eng, v2)</th><td>59.0</td><td>—</td><td>64.3</td><td>—</td><td>66.3</td><td>70.5</td></tr>
+                        <tr><th>MTEB (multilingual)</th><td>41.4</td><td>—</td><td>43.8</td><td>66.6</td><td>45.9</td><td>64.3</td></tr>
+                    </tbody>
+                </table>
+                <p class="smaller">From the <a target="_blank" href="https://huggingface.co/spaces/mteb/leaderboard">MTEB leaderboard</a>.</p>
+                <aside class="notes">Small to large: 23M to 596M parameters, 384 to 1024 dimensions. MiniLM L12 and Harrier 270M have no MTEB (eng, v2) mean.</aside>
+            </section>
+
+            <section>
+                <h3>Generating embeddings with Python</h3>
+
+                <pre><code class="language-python" data-trim>
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer(
+    "sentence-transformers/all-MiniLM-L6-v2")
+
+vectors = model.encode(["fire", "whale"],
+                       normalize_embeddings=True)
+print(vectors.shape)  # (2, 384)
+                </code></pre>
+
+                <p>Runs locally on CPU, models download from Hugging Face.</p>
+                <p class="smaller">Also: <a target="_blank" href="https://learn.microsoft.com/azure/ai-foundry/openai/concepts/understand-embeddings">OpenAI models on Microsoft Foundry</a>, Ollama, …</p>
+            </section>
+
+            <section>
+                <h3>Comparing vectors: cosine similarity</h3>
+
+                <img src="slides_assets/distance_cosine.svg" alt="Two vectors with the angle between them used for cosine similarity" style="width: 250px; float:right; margin-left:30px;">
+
+                <p>How closely do two vectors point in the same direction?</p>
+                <ul>
+                    <li><strong>1</strong>: same direction</li>
+                    <li><strong>0</strong>: unrelated</li>
+                    <li><strong>-1</strong>: opposite</li>
+                </ul>
+
+                <pre><code class="language-python" data-trim>
+# Normalized vectors: dot product = cosine similarity
+fire, whale, flame = model.encode(
+    ["fire", "whale", "flame"],
+    normalize_embeddings=True)
+fire @ flame   # 0.80
+fire @ whale   # 0.30
+                </code></pre>
+                <p class="smaller">Scales differ by model: fire · whale is 0.30 with MiniLM L6, but 0.63 with Qwen3.</p>
+            </section>
+
+            <section>
+                <h3>Nearest neighbors of "fire"</h3>
+
+                <p>Compare "fire" to every word in a vocabulary, sort by similarity:</p>
+                <table>
+                    <thead><tr><th>Word</th><th>Cosine similarity</th></tr></thead>
+                    <tbody>
+                        <tr><td>flame</td><td>0.80</td></tr>
+                        <tr><td>smoke</td><td>0.67</td></tr>
+                        <tr><td>firefighter</td><td>0.61</td></tr>
+                        <tr class="fragment"><td>flamingo 🦩</td><td>0.58</td></tr>
+                        <tr><td>stove</td><td>0.57</td></tr>
+                    </tbody>
+                </table>
+                <p class="fragment smaller">Flamingo?! Models see <em>spelling</em> too: "flam-" ≈ "flame".</p>
+                <aside class="notes">MiniLM L6, our ~1000-word vocabulary. This is vector search!</aside>
+            </section>
+
+            <section>
+                <h3>Visualizing vectors</h3>
+
+                <a target="_blank" href="https://pamelafox.github.io/vectors-comparison/">
+                    🔗 pamelafox.github.io/vectors-comparison
+                    <br>
+                    <img src="slides_assets/screenshot_vectors_comparison.png" alt="Screenshot of a tool comparing vector similarities across models" style="width: 600px;">
+                </a>
+                <p class="smaller">More in my blog post:
+                    <a target="_blank" href="http://blog.pamelafox.org/2025/05/a-visual-exploration-of-vector.html">A visual exploration of vector embeddings</a></p>
+            </section>
+
+            <section class="heading-only">
+                <h2>Finding the word <em>between</em> two words</h2>
+            </section>
+
+            <section>
+                <h3>The game, as code</h3>
+
+                <ol>
+                    <li>Embed a vocabulary of ~1000 concrete nouns (once).</li>
+                    <li>Embed the two input words, <strong>a</strong> and <strong>b</strong>.</li>
+                    <li>For every candidate word <strong>w</strong>:
+                        <code>s_a = cos(w, a)</code>, <code>s_b = cos(w, b)</code></li>
+                    <li><strong>Combine</strong> those into one score with an <em>operator</em>.</li>
+                    <li>Pick the top-scoring word (but not a or b).</li>
+                </ol>
+                <p class="fragment">Two models do this independently each round. Same word? Converged! 🎉</p>
+            </section>
+
+            <section>
+                <h3>Operator 1: Centroid</h3>
+
+                <p>Average the two vectors, find the closest word to the midpoint.</p>
+                <pre><code class="language-python" data-trim>
+query = normalize(vec_a + vec_b)
+scores = vocab.vectors @ query
+                </code></pre>
+                <p class="smaller">Ranks the same as <code>s_a + s_b</code>, so one very strong link can win.</p>
+                <p><a target="_blank" href="https://ca-api-n7wptl6izdmcs.wonderfulplant-33a4a3ab.northcentralus.azurecontainerapps.io/web/operators.html#centroid">📐 See it in 3D</a></p>
+            </section>
+
+            <section>
+                <h3>Operator 2: Balanced</h3>
+
+                <p>A word is only as good as its <em>weaker</em> connection.</p>
+                <pre><code class="language-python" data-trim>
+scores = np.minimum(sim_a, sim_b)
+                </code></pre>
+                <p class="smaller">Also known as <strong>maximin</strong> (maximize the minimum).</p>
+                <p><a target="_blank" href="https://ca-api-n7wptl6izdmcs.wonderfulplant-33a4a3ab.northcentralus.azurecontainerapps.io/web/operators.html#balanced">📐 See it in 3D</a></p>
+            </section>
+
+            <section>
+                <h3>Operator 3: Geometric mean</h3>
+
+                <p>Reward words that are close to <em>both</em>, multiplicatively.</p>
+                <pre><code class="language-python" data-trim>
+scores = np.sqrt(
+    np.clip(sim_a, 0, None) * np.clip(sim_b, 0, None))
+                </code></pre>
+                <p class="smaller">The word with the biggest rectangle <code>s_a × s_b</code> wins.</p>
+                <p><a target="_blank" href="https://ca-api-n7wptl6izdmcs.wonderfulplant-33a4a3ab.northcentralus.azurecontainerapps.io/web/operators.html#geometric-mean">📐 See the rectangles</a></p>
+            </section>
+
+            <section>
+                <h3>Operator 4: Textual</h3>
+
+                <p>Let the model combine them: embed a <em>phrase</em>.</p>
+                <pre><code class="language-python" data-trim>
+phrase = f"{word_a} and {word_b}"
+phrase_vec = model.encode(
+    [phrase], normalize_embeddings=True)[0]
+scores = vocab.vectors @ phrase_vec
+                </code></pre>
+                <p class="smaller">Behaves a lot like centroid in practice.</p>
+                <p><a target="_blank" href="https://ca-api-n7wptl6izdmcs.wonderfulplant-33a4a3ab.northcentralus.azurecontainerapps.io/web/operators.html#compare">📐 Compare all four</a></p>
+            </section>
+
+            <section>
+                <h3>The game loop</h3>
+
+                <pre><code class="language-python" data-trim>
+pair = (word_a, word_b)
+for round_number in range(1, max_rounds + 1):
+    # Each model picks its top word, excluding the pair
+    picks = tuple(top_word(model, operator, pair)
+                  for model in (model_a, model_b))
+    if picks[0] == picks[1]:
+        return "converged", round_number
+    if picks in seen:
+        return "loop", round_number
+    seen.add(picks)
+    pair = picks
+return "round_limit", max_rounds
+                </code></pre>
+                <p class="smaller">Full code: <a target="_blank" href="https://github.com/pamelafox/convergence-with-vectors/blob/main/simulate_convergence.py">simulate_convergence.py</a></p>
+            </section>
+
+            <section class="heading-only">
+                <h2>Let's play again! 🎲</h2>
+                <p style="text-align:center; margin-top:40px; font-size:1.3em;">
+                    <a target="_blank" href="https://ca-api-n7wptl6izdmcs.wonderfulplant-33a4a3ab.northcentralus.azurecontainerapps.io/web/play.html">Play Convergence</a>
+                </p>
+                <aside class="notes">
+                    Try the balanced operator and watch them struggle. Then try random models each round.
+                </aside>
+            </section>
+
+            <section class="heading-only">
+                <h2>Embedding model battle ⚔️</h2>
+            </section>
+
+            <section>
+                <h3>The battle setup</h3>
+
+                <ul>
+                    <li>6 models → 15 pairings (+ each model vs. itself)</li>
+                    <li>Same 100 random starting pairs for every pairing</li>
+                    <li>Up to 10 rounds per game</li>
+                    <li>Outcomes: <strong>converged</strong>, <strong>loop</strong> (a pair repeats), or <strong>round limit</strong></li>
+                </ul>
+
+                <pre><code class="language-bash" data-trim>
+uv run model_battle.py --games 100 --operator centroid
+                </code></pre>
+                <p class="smaller">Runs in ~10 seconds: the vocabulary vectors are precomputed in SQLite.</p>
+            </section>
+
+            <section>
+                <h3>Self-play: instant convergence</h3>
+
+                <p>A model vs. itself converges in round 1, <strong>every time</strong>.</p>
+                <p class="fragment">Same vectors + same math = same word.</p>
+                <p class="fragment">Convergence is only interesting when the players <em>see the world differently</em>.</p>
+            </section>
+
+            <section>
+                <h3>Which pairs converge most?</h3>
+
+                <div class="row">
+                    <div class="column">
+                        <h4>🤝 Most</h4>
+                        <table class="compact">
+                            <tbody>
+                                <tr><td>MiniLM L6 + MiniLM L12</td><td>97%</td></tr>
+                                <tr><td>MiniLM L6 + BGE Small</td><td>97%</td></tr>
+                                <tr><td>MiniLM L12 + BGE Small</td><td>95%</td></tr>
+                                <tr><td>BGE Small + mxbai</td><td>92%</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="column">
+                        <h4>🙅 Least</h4>
+                        <table class="compact">
+                            <tbody>
+                                <tr><td>BGE Small + Qwen3</td><td>71%</td></tr>
+                                <tr><td>mxbai + Qwen3</td><td>71%</td></tr>
+                                <tr><td>Harrier + Qwen3</td><td>73%</td></tr>
+                                <tr><td>mxbai + Harrier</td><td>73%</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <p class="smaller">Centroid operator. Similar small models think alike; Qwen3 is the odd one out.</p>
+            </section>
+
+            <section>
+                <h3>Best benchmark ≠ best teammate</h3>
+
+                <table class="compact">
+                    <thead><tr><th>Model</th><th>Converges vs. others</th><th>Avg rounds</th><th>Loops</th><th>MTEB (eng)</th><th>MTEB (multi)</th></tr></thead>
+                    <tbody>
+                        <tr><td>MiniLM L6</td><td>88%</td><td>2.6</td><td>12%</td><td>59.0</td><td>41.4</td></tr>
+                        <tr><td>MiniLM L12</td><td>87%</td><td>2.5</td><td>12%</td><td>–</td><td>–</td></tr>
+                        <tr><td>BGE Small</td><td>86%</td><td>2.8</td><td>13%</td><td>64.3</td><td>43.8</td></tr>
+                        <tr><td>mxbai Embed Large</td><td>83%</td><td>2.7</td><td>17%</td><td>66.3</td><td>45.9</td></tr>
+                        <tr><td>Harrier 270M</td><td>77%</td><td>3.1</td><td>22%</td><td>–</td><td>66.6</td></tr>
+                        <tr><td>Qwen3 Embedding 0.6B</td><td>73%</td><td>3.4</td><td>26%</td><td>70.5</td><td>64.3</td></tr>
+                    </tbody>
+                </table>
+                <p class="fragment">The <strong>highest</strong> MTEB scores converge the <strong>least</strong>. Benchmarks measure <em>their</em> tasks, not yours!</p>
+            </section>
+
+            <section>
+                <h3>Does the operator matter?</h3>
+
+                <table class="compact">
+                    <thead><tr><th>Operator</th><th>Converged</th><th>Avg rounds</th><th>Loops</th></tr></thead>
+                    <tbody>
+                        <tr><td>Textual</td><td>85%</td><td>2.8</td><td>15%</td></tr>
+                        <tr><td>Centroid</td><td>82%</td><td>2.8</td><td>17%</td></tr>
+                        <tr><td>Geometric mean</td><td>80%</td><td>3.1</td><td>19%</td></tr>
+                        <tr class="fragment"><td><strong>Balanced</strong></td><td><strong>51%</strong></td><td>4.6</td><td>27%</td></tr>
+                    </tbody>
+                </table>
+                <p class="fragment">Balanced picks from a crowded middle, where tiny differences between models flip the winner.
+                    How you <em>combine</em> vectors matters as much as which model you use.</p>
+            </section>
+
+            <section>
+                <h3>The longest roads to convergence</h3>
+
+                <p class="smaller"><strong>MiniLM L6 vs. Qwen3</strong>, 10 rounds:<br>
+                    bear + clay → donkey + clam → elephant + dolphin → whale + salamander → frog + jellyfish →
+                    lizard + salamander → frog + crocodile → alligator + salamander → lizard + crocodile →
+                    alligator + scorpion → <strong>crocodile</strong> 🐊</p>
+                <p class="smaller"><strong>BGE Small vs. Qwen3</strong>, 10 rounds:<br>
+                    pistachio + rocket → peanut + pomegranate → shrimp + pistachio → peanut + sardine →
+                    nut + mackerel → peanut + herring → walnut + mackerel → herring + sardine →
+                    salmon + mackerel → trout + sardine → <strong>salmon</strong> 🐟</p>
+                <p class="smaller">Qwen3 gets stuck in a theme and drags the other model along.</p>
+            </section>
+
+            <section>
+                <h3>Surprisingly weird choices</h3>
+
+                <ul>
+                    <li><strong>blubber + engine</strong> → MiniLM L6 says <em>bluejay</em>, then <em>blueberry</em> 🫐
+                        <br><span class="smaller">"blu-" spelling beats meaning</span></li>
+                    <li><strong>fire</strong> is close to <em>flamingo</em> 🦩</li>
+                    <li><strong>fire + whale</strong> → Qwen3 says <em>narwhal</em>; MiniLM says <em>flame</em></li>
+                    <li><strong>earring + modem</strong> → centroid says <em>ear</em>; balanced says <em>phone</em></li>
+                </ul>
+                <p class="smaller">Single words are ambiguous and short: models fall back on spelling and the stronger word.</p>
+            </section>
+
+            <section class="heading-only">
+                <h2>Takeaways</h2>
+            </section>
+
+            <section>
+                <h3>What Convergence teaches about vector search</h3>
+
+                <ul>
+                    <li><strong>Embeddings capture meaning</strong> (and sometimes spelling).</li>
+                    <li><strong>Models disagree</strong>: test with your own data, not only benchmarks.</li>
+                    <li><strong>Combining signals is a design choice</strong>, like ranking in hybrid search.</li>
+                    <li><strong>The candidate set matters</strong>: models can only pick what's in the vocabulary, like search can only return what's indexed.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>Where vector search is useful</h3>
+
+                <ul>
+                    <li>🔍 <strong>Semantic search</strong>: find documents by meaning, not keywords</li>
+                    <li>🛍️ <strong>Recommendations</strong>: "similar items"</li>
+                    <li>🤖 <strong>RAG</strong>: retrieve context for LLM answers</li>
+                    <li>🧹 <strong>Deduplication and clustering</strong>: group near-duplicates</li>
+                    <li>🎲 <strong>Word games</strong>, obviously</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>Thank you!</h3>
+
+                <img src="slides_assets/pamela_elephant.png" alt="Photo of Pamela smiling with a stuffed elephant" style="width: 250px; float:right; border-radius: 12px;">
+
+                <p>Code, slides, and the game:<br>
+                    <span class="aka">github.com/pamelafox/convergence-with-vectors</span></p>
+                <p>Play it: <a target="_blank" href="https://ca-api-n7wptl6izdmcs.wonderfulplant-33a4a3ab.northcentralus.azurecontainerapps.io/web/play.html">Convergence</a> ·
+                    <a target="_blank" href="https://ca-api-n7wptl6izdmcs.wonderfulplant-33a4a3ab.northcentralus.azurecontainerapps.io/web/operators.html">How the operators work</a></p>
+                <p>Find me online at <a target="_blank" href="https://www.pamelafox.org">pamelafox.org</a></p>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.1.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.1.0/plugin/highlight/highlight.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlightjs-badge@0.1.9/highlightjs-badge.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js-menu@2.1.0/menu.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            center: false,
+            slideNumber: true,
+            showNotes: false,
+            margin: 0.1,
+            preloadIframes: true,
+            plugins: [ RevealHighlight, RevealMenu ],
+            pdfSeparateFragments: true
+        });
+
+        window.highlightJsBadge();
+
+    </script>
+    </body>
+</html>

@@ -27,7 +27,7 @@ def _patch_vocab(monkeypatch):
 def test_simulate_converges_when_models_agree(monkeypatch):
     _patch_vocab(monkeypatch)
 
-    def fake_apply_operator(operator_name, model_name, vocab, word_a, word_b, *, top_k, exclude, template="{a} and {b}"):
+    def fake_apply_operator(operator_name, model_name, vocab, word_a, word_b, *, top_k, exclude, **kwargs):
         return _fake_result("mountain")
 
     monkeypatch.setattr(sim, "apply_operator", fake_apply_operator)
@@ -50,7 +50,7 @@ def test_simulate_detects_loop(monkeypatch):
         ("m2", ("a", "b")): "whale",
     }
 
-    def fake_apply_operator(operator_name, model_name, vocab, word_a, word_b, *, top_k, exclude, template="{a} and {b}"):
+    def fake_apply_operator(operator_name, model_name, vocab, word_a, word_b, *, top_k, exclude, **kwargs):
         return _fake_result(responses[(model_name, (word_a, word_b))])
 
     monkeypatch.setattr(sim, "apply_operator", fake_apply_operator)
@@ -66,7 +66,7 @@ def test_simulate_hits_round_limit(monkeypatch):
 
     counter = {"n": 0}
 
-    def fake_apply_operator(operator_name, model_name, vocab, word_a, word_b, *, top_k, exclude, template="{a} and {b}"):
+    def fake_apply_operator(operator_name, model_name, vocab, word_a, word_b, *, top_k, exclude, **kwargs):
         counter["n"] += 1
         # Always invent a brand-new word so the pair never repeats and never matches.
         suffix = "a" if model_name == "m1" else "b"
@@ -84,7 +84,7 @@ def test_simulate_excludes_current_pair_by_default(monkeypatch):
     _patch_vocab(monkeypatch)
     seen_excludes = []
 
-    def fake_apply_operator(operator_name, model_name, vocab, word_a, word_b, *, top_k, exclude, template="{a} and {b}"):
+    def fake_apply_operator(operator_name, model_name, vocab, word_a, word_b, *, top_k, exclude, **kwargs):
         seen_excludes.append(exclude)
         return _fake_result("mountain")
 
@@ -99,7 +99,7 @@ def test_simulate_include_inputs_disables_exclusion(monkeypatch):
     _patch_vocab(monkeypatch)
     seen_excludes = []
 
-    def fake_apply_operator(operator_name, model_name, vocab, word_a, word_b, *, top_k, exclude, template="{a} and {b}"):
+    def fake_apply_operator(operator_name, model_name, vocab, word_a, word_b, *, top_k, exclude, **kwargs):
         seen_excludes.append(exclude)
         return _fake_result("mountain")
 
@@ -108,3 +108,27 @@ def test_simulate_include_inputs_disables_exclusion(monkeypatch):
     sim.simulate_convergence(Path("unused.txt"), "fire", "whale", models=["m1", "m2"], max_rounds=1, include_inputs=True)
 
     assert seen_excludes[0] == set()
+
+
+def test_run_simulation_can_switch_players_each_round(monkeypatch):
+    # Round 2 returns to (fire, whale), which is a loop with fixed players,
+    # but with new players in round 3 the game can still go somewhere new.
+    responses = {
+        ("m1", ("fire", "whale")): "a",
+        ("m2", ("fire", "whale")): "b",
+        ("m1", ("a", "b")): "fire",
+        ("m3", ("a", "b")): "whale",
+        ("m3", ("fire", "whale")): "c",
+    }
+
+    def fake_apply_operator(operator_name, model_name, vocab, word_a, word_b, *, top_k, exclude, **kwargs):
+        return _fake_result(responses[(model_name, (word_a, word_b))])
+
+    monkeypatch.setattr(sim, "apply_operator", fake_apply_operator)
+    rounds = {1: ["m1", "m2"], 2: ["m1", "m3"], 3: ["m3", "m3"]}
+
+    result = sim.run_simulation(["m1", "m2"], {"m1": None, "m2": None, "m3": None}, "fire", "whale", max_rounds=5, pick_models=rounds.__getitem__)
+
+    assert [step["models"] for step in result["path"]] == [None, ("m1", "m2"), ("m1", "m3"), ("m3", "m3")]
+    assert result["outcome"] == "converged"
+    assert result["path"][-1]["pair_out"] == ("c", "c")

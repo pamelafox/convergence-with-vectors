@@ -26,14 +26,18 @@ stuck, and which make weird choices.
 
 | Path | Purpose |
 |------|---------|
-| `index.html` | reveal.js slides, a single HTML file |
-| `slides_assets/` | CSS and images for the slides |
+| `docs/index.html` | reveal.js slides, a single HTML file, published with GitHub Pages |
+| `docs/slides_assets/` | CSS, images, and video for the slides |
+| `backend/` | FastAPI app (`app.py`) and SQLite embedding store (`db.py`); serves `web/` and `/api` |
+| `build_db.py` | Embeds the vocabulary into `data/convergence.db` (generated, gitignored) for the backend |
+| `web/` | Pages for the web app; `web/api.js` is the only module that talks to the backend |
 | `http/` | Sample embeddings requests for the VS Code REST Client extension |
 | `pyproject.toml` | Runtime dependencies, `dev` dependency group, and ruff/black config |
 | `uv.lock` | Locked dependency versions managed by uv |
 
 Python game code lives in top-level modules named after what they demonstrate,
 following the style of the previous talk's repository (for example `example.py`, `convergence.py`).
+All scoring happens in Python: the web pages call the backend rather than reimplementing operators in JavaScript.
 
 ## Environment
 
@@ -41,6 +45,7 @@ following the style of the previous talk's repository (for example `example.py`,
 * Manage dependencies with [uv](https://docs.astral.sh/uv/): `uv sync` installs runtime and dev dependencies into `.venv`.
 * Add dependencies with `uv add <pkg>` (or `uv add --dev <pkg>`), which updates `pyproject.toml` and `uv.lock`.
 * Run scripts and tools with `uv run`, e.g. `uv run compare_pair.py ...`.
+* Run the web app with `uv run build_db.py` (once) and then `uv run fastapi dev backend/app.py`.
 * Embedding models come from Microsoft Foundry (needs `AZURE_OPENAI_ENDPOINT` and Entra auth), Ollama (local), and
   `sentence-transformers` (downloaded from Hugging Face).
 
@@ -60,4 +65,4 @@ following the style of the previous talk's repository (for example `example.py`,
 * Access models through the `openai` client library (both Foundry and Ollama expose
   OpenAI-compatible endpoints) or through `sentence-transformers` for local models.
 * Never hardcode secrets; read tokens from environment variables, optionally loaded via `python-dotenv`.
-* There is no test suite in this repository; verify changes by running the scripts.
+* Run the tests with `uv run pytest tests/`; they use small synthetic vectors and fake embedders, so no model downloads are needed.

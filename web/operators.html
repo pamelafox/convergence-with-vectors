@@ -4,7 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>How the operators work | Convergence in vector space</title>
-    <link rel="stylesheet" href="../slides_assets/slides.css" />
     <script type="importmap">
       {
         "imports": {
@@ -30,6 +29,31 @@
         margin-top: 2.5rem;
         border-top: 1px solid #ddd;
         padding-top: 1.5rem;
+        scroll-margin-top: 3.5rem;
+      }
+      .jump-nav {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        padding: 0.5rem 0;
+        background: #fff;
+        border-bottom: 1px solid #ddd;
+      }
+      .jump-nav a {
+        padding: 0.3rem 0.8rem;
+        border-radius: 999px;
+        background: #eeeaf8;
+        color: #4b2fa0;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .jump-nav a:hover,
+      .jump-nav a:focus-visible {
+        background: #6c43d9;
+        color: #fff;
       }
       .controls {
         display: grid;
@@ -56,6 +80,11 @@
         display: block;
         width: 100%;
         height: auto;
+      }
+      code {
+        padding: 2px 4px;
+        font-size: 90%;
+        border-radius: 4px;
       }
       .formula {
         font-family: "Roboto Mono", monospace;
@@ -166,6 +195,13 @@
   <body>
     <p><a href="play.html">← Back to the game</a></p>
     <h1>How the combination operators work</h1>
+    <nav class="jump-nav" aria-label="Jump to an operator">
+      <a href="#centroid">Centroid</a>
+      <a href="#balanced">Balanced</a>
+      <a href="#geometric-mean">Geometric mean</a>
+      <a href="#textual">Textual</a>
+      <a href="#compare">Side by side</a>
+    </nav>
     <p>
       Every operator answers the same question: <em>which word sits between word A and word B?</em>
       Each candidate word <var>w</var> gets two numbers: how similar it is to A
@@ -180,17 +216,17 @@
       </div>
       <div>
         <label for="word-a">Word A</label>
-        <input id="word-a" type="text" list="vocab" value="fire" autocomplete="off" />
+        <input id="word-a" type="text" list="vocab" value="earring" autocomplete="off" />
       </div>
       <div>
         <label for="word-b">Word B</label>
-        <input id="word-b" type="text" list="vocab" value="whale" autocomplete="off" />
+        <input id="word-b" type="text" list="vocab" value="modem" autocomplete="off" />
       </div>
     </section>
     <datalist id="vocab"></datalist>
     <p id="error" role="alert"></p>
 
-    <h2>1. Centroid: the smallest angle to the midpoint</h2>
+    <h2 id="centroid">1. Centroid: the smallest angle to the midpoint</h2>
     <p>
       The real vectors have hundreds of dimensions, but any two arrows from the same point always lie in a single flat plane.
       The floor of this picture is that plane, holding <var>a</var>, <var>b</var> and their midpoint <var>ĉ</var> at their real angles.
@@ -230,7 +266,7 @@
       That's why a word that leans heavily toward one input, like a near-synonym, can still win.
     </p>
 
-    <h2>2. Balanced: inside both circles first</h2>
+    <h2 id="balanced">2. Balanced: inside both circles first</h2>
     <p>
       Balanced only gives a word a score of <var>L</var> if it is at least that similar to <var>a</var> <em>and</em> to <var>b</var>.
       On the same dome, "at least that similar to <var>a</var>" means "inside a circle around <var>a</var>".
@@ -260,7 +296,7 @@
       The smaller one (thin arc) only has to stay below it, and how far below doesn't matter.
     </p>
 
-    <h2>3. Geometric mean: the biggest rectangle</h2>
+    <h2 id="geometric-mean">3. Geometric mean: the biggest rectangle</h2>
     <p>
       Geometric mean multiplies the two similarities and takes the square root: √(s<sub>a</sub> · s<sub>b</sub>).
       Picture a rectangle that is s<sub>a</sub> wide and s<sub>b</sub> tall. The geometric mean is the side of the <strong>square with the same area</strong>.
@@ -268,8 +304,9 @@
     <figure>
       <svg id="rectangles" viewBox="0 0 680 230" role="img" aria-labelledby="rectangles-desc"></svg>
       <figcaption id="rectangles-desc" class="note">
-        Each top word's rectangle (similarity to a wide, similarity to b tall) and the dashed square with the same area.
-        The square's side is the geometric mean. Negative similarities count as 0.
+        Each rectangle is a word's similarity to a (width) by its similarity to b (height), next to the dashed square with the same area.
+        The biggest area wins. The square's side is the square root of the area, which is the geometric mean score. Negative similarities count as 0.
+        The bottom row shows the words closest to each input on their own: one long side, but a small area.
       </figcaption>
     </figure>
     <p>
@@ -278,7 +315,7 @@
       That's in between centroid, where any loss can be made up by an equal gain, and balanced, where nothing makes up for the weaker side.
     </p>
 
-    <h2>4. All operators side by side</h2>
+    <h2 id="compare">4. All operators side by side</h2>
     <p>The top 5 for each operator for this pair. Highlighted cells are where an operator's choice differs from centroid.</p>
     <div class="table-scroll">
       <table>
@@ -287,19 +324,19 @@
       </table>
     </div>
 
-    <h2>What about <code>textual</code>?</h2>
+    <h2 id="textual">What about <code>textual</code>?</h2>
     <p>
       The fourth operator in <code>operators.py</code> skips the vector arithmetic. It embeds a phrase like
-      <em>"fire and whale"</em> and finds the word closest to that phrase's vector. The transformer reads both words together,
-      so it can capture a combined meaning that a plain average can't. It needs the model at run time to embed the new phrase,
-      though, so it can't run on this static page. Try it with <code>uv run compare_pair.py</code> instead.
+      <em>"earring and modem"</em> and finds the word closest to that phrase's vector. The transformer reads both words together,
+      so it can capture a combined meaning that a plain average can't. That needs the model at run time to embed the new phrase,
+      which the Python backend does on demand: its picks are the <code>textual</code> column in the table above.
     </p>
 
     <script type="module">
-      import { applyOperator, loadModelEmbeddings } from "./convergence.js";
+      import { combine, getVocab, listModels, similarities } from "./api.js";
 
       const SVG_NS = "http://www.w3.org/2000/svg";
-      const OPS = ["centroid", "balanced", "geometric_mean"];
+      const OPS = ["centroid", "balanced", "geometric_mean", "textual"];
       // Distinct from the blue, purple and green used for a, b and ĉ
       const WORD_COLORS = ["#d1495b", "#e08a00", "#8c564b", "#e377c2", "#17becf", "#bcbd22", "#7b2d26", "#c9a227", "#5f6b7a", "#ff6f3c"];
 
@@ -347,12 +384,6 @@
         return node;
       }
 
-      function dot(u, v) {
-        let sum = 0;
-        for (let i = 0; i < u.length; i++) sum += u[i] * v[i];
-        return sum;
-      }
-
       const fmt = (x) => x.toFixed(2);
       const fmt3 = (x) => x.toFixed(3);
 
@@ -367,38 +398,49 @@
         }
       }
 
-      function computeState() {
-        const data = state.data;
+      /** Fetch everything the views need for the current pair. Returns null (and shows why) for invalid input. */
+      async function computeState() {
+        const model = els.model.value;
         const wordA = els.wordA.value.trim().toLowerCase();
         const wordB = els.wordB.value.trim().toLowerCase();
-        const idxA = data.index.get(wordA);
-        const idxB = data.index.get(wordB);
-        if (idxA === undefined || idxB === undefined) {
-          const missing = [wordA, wordB].filter((w) => !data.index.has(w));
-          els.error.textContent = `Not in the vocabulary: ${missing.map((w) => `"${w}"`).join(", ")}`;
-          return false;
+        if (!wordA || !wordB) {
+          els.error.textContent = "Enter two words.";
+          return null;
         }
         if (wordA === wordB) {
           els.error.textContent = "Pick two different words.";
-          return false;
+          return null;
         }
         els.error.textContent = "";
-        const vecA = data.vectors[idxA];
-        const vecB = data.vectors[idxB];
-        const cosAB = dot(vecA, vecB);
-        const norm = Math.sqrt(2 + 2 * cosAB);
-        const simA = data.vectors.map((v) => dot(v, vecA));
-        const simB = data.vectors.map((v) => dot(v, vecB));
-        const exclude = new Set([wordA, wordB]);
-        const topWide = {};
-        for (const op of OPS) topWide[op] = applyOperator(op, data, wordA, wordB, { topK: 10, exclude });
+        const [sims, geoAll, ...tops] = await Promise.all([
+          similarities(model, wordA, wordB),
+          // Full geometric-mean ranking, so any word's rank can be shown next to its rectangle
+          combine("geometric_mean", model, wordA, wordB, { topK: 10000 }),
+          ...OPS.map((op) => combine(op, model, wordA, wordB, { topK: 10 })),
+        ]);
+        const topWide = Object.fromEntries(OPS.map((op, i) => [op, tops[i]]));
         const top = Object.fromEntries(OPS.map((op) => [op, topWide[op].slice(0, 5)]));
-        Object.assign(state, { wordA, wordB, idxA, idxB, cosAB, norm, simA, simB, top, topWide });
+        const { simA, simB, cosAB } = sims;
+        const norm = Math.sqrt(2 + 2 * cosAB);
         const half = Math.acos(Math.max(-1, Math.min(1, cosAB))) / 2;
-        state.sh = Math.max(Math.sin(half), 1e-6);
-        state.ch = Math.max(Math.cos(half), 1e-6);
-        state.half = half;
-        return true;
+        return {
+          data: { words: sims.words },
+          wordA,
+          wordB,
+          // Inputs don't have to be vocabulary words, in which case these are -1
+          idxA: sims.words.indexOf(wordA),
+          idxB: sims.words.indexOf(wordB),
+          cosAB,
+          norm,
+          simA,
+          simB,
+          top,
+          topWide,
+          geoAll,
+          half,
+          sh: Math.max(Math.sin(half), 1e-6),
+          ch: Math.max(Math.cos(half), 1e-6),
+        };
       }
 
       /** Place a word on the unit dome: x sideways and y along ĉ in the a–b plane, h = length of the hidden part. */
@@ -492,30 +534,44 @@
         return dome;
       }
 
-      function renderRectangles(topN) {
+      function closestTo(key) {
+        return state.geoAll.reduce((best, c) => (c[key] > best[key] ? c : best));
+      }
+
+      function renderRectangles(rows) {
         const root = els.rectangles;
         root.replaceChildren();
-        const cols = Math.min(Math.max(topN.length, 1), 5);
-        const rows = Math.ceil(topN.length / cols);
-        const panelW = 136;
-        const panelH = 215;
+        const cols = Math.max(...rows.map((row) => row.items.length), 1);
+        const panelW = 190;
+        const panelH = 248;
+        const titleH = 28;
         const S = 120;
-        root.setAttribute("viewBox", `0 0 ${cols * panelW} ${rows * panelH}`);
-        topN.forEach((c, i) => {
-          const sa = Math.max(c.simA, 0);
-          const sb = Math.max(c.simB, 0);
-          const side = Math.sqrt(sa * sb);
-          const wordColor = WORD_COLORS[(c.rank - 1) % WORD_COLORS.length];
-          const ox = (i % cols) * panelW + 10;
-          const oy = Math.floor(i / cols) * panelH + 160;
-          // Axes, scaled so similarity 1 = S px
-          svg("line", { x1: ox, y1: oy, x2: ox + S, y2: oy, stroke: "#bbb" }, root);
-          svg("line", { x1: ox, y1: oy, x2: ox, y2: oy - S, stroke: "#bbb" }, root);
-          svg("rect", { x: ox, y: oy - sb * S, width: sa * S, height: sb * S, fill: wordColor, "fill-opacity": 0.3, stroke: wordColor, "stroke-width": 2 }, root);
-          svg("rect", { x: ox, y: oy - side * S, width: side * S, height: side * S, fill: "none", stroke: "#222", "stroke-width": 1.5, "stroke-dasharray": "4 3" }, root);
-          svg("text", { x: ox, y: oy - S - 8, "font-size": 14, "font-weight": c.rank === 1 ? 700 : 500, fill: wordColor }, root, `${c.rank}. ${c.candidate}`);
-          svg("text", { x: ox, y: oy + 18, "font-size": 12, fill: "#333" }, root, `${fmt(sa)} × ${fmt(sb)} = ${fmt(sa * sb)}`);
-          svg("text", { x: ox, y: oy + 36, "font-size": 12, "font-weight": 700, fill: "#222" }, root, `square side = ${fmt3(side)}`);
+        root.setAttribute("viewBox", `0 0 ${cols * panelW} ${rows.length * (panelH + titleH)}`);
+        rows.forEach((row, r) => {
+          const rowTop = r * (panelH + titleH);
+          svg("text", { x: 10, y: rowTop + 20, "font-size": 15, "font-weight": 700, fill: "#222" }, root, row.title);
+          row.items.forEach((c, i) => {
+            const sa = Math.max(c.simA, 0);
+            const sb = Math.max(c.simB, 0);
+            const side = Math.sqrt(sa * sb);
+            const ox = i * panelW + 30;
+            const oy = rowTop + titleH + 160;
+            // Axes, scaled so similarity 1 = S px
+            svg("line", { x1: ox, y1: oy, x2: ox + S, y2: oy, stroke: "#999" }, root);
+            svg("line", { x1: ox, y1: oy, x2: ox, y2: oy - S, stroke: "#999" }, root);
+            const tick = { "font-size": 10, fill: "#777" };
+            svg("text", { ...tick, x: ox - 4, y: oy + 11, "text-anchor": "end" }, root, "0");
+            svg("text", { ...tick, x: ox + S, y: oy + 11, "text-anchor": "middle" }, root, "1");
+            svg("text", { ...tick, x: ox - 4, y: oy - S + 4, "text-anchor": "end" }, root, "1");
+            svg("text", { x: ox + S / 2, y: oy + 13, "text-anchor": "middle", "font-size": 11, fill: "#1766a0" }, root, `"${state.wordA}" \u2192`);
+            svg("text", { x: ox - 14, y: oy - S / 2, "text-anchor": "middle", "font-size": 11, fill: "#9b467d", transform: `rotate(-90 ${ox - 14} ${oy - S / 2})` }, root, `"${state.wordB}" \u2192`);
+            svg("rect", { x: ox, y: oy - sb * S, width: sa * S, height: sb * S, fill: c.color, "fill-opacity": 0.3, stroke: c.color, "stroke-width": 2 }, root);
+            svg("rect", { x: ox, y: oy - side * S, width: side * S, height: side * S, fill: "none", stroke: "#222", "stroke-width": 1.5, "stroke-dasharray": "4 3" }, root);
+            svg("text", { x: ox, y: oy - S - 8, "font-size": 14, "font-weight": c.rank === 1 ? 700 : 500, fill: c.color }, root, c.label);
+            svg("text", { x: ox, y: oy + 34, "font-size": 12, fill: "#333" }, root, `area = ${fmt(sa)} × ${fmt(sb)} = ${fmt(sa * sb)}`);
+            svg("text", { x: ox, y: oy + 52, "font-size": 12, "font-weight": 700, fill: "#222" }, root, `square side = √${fmt(sa * sb)} = ${fmt3(side)}`);
+            svg("text", { x: ox, y: oy + 70, "font-size": 12, fill: "#555" }, root, `rank #${c.rank} of ${state.geoAll.length}`);
+          });
         });
       }
 
@@ -806,20 +862,45 @@
         els.compareBody.replaceChildren(...rows);
       }
 
-      function renderAll() {
-        if (!state || !computeState()) return;
+      let renderToken = 0;
+
+      async function renderAll() {
+        if (!state) return;
+        // Ignore responses for word pairs the user has already changed away from
+        const token = ++renderToken;
+        let next;
+        try {
+          next = await computeState();
+        } catch (err) {
+          els.error.textContent = err.message;
+          return;
+        }
+        if (!next || token !== renderToken) return;
+        Object.assign(state, next);
         const balancedWinner = state.top.balanced[0];
         if (balancedWinner) {
           els.circleAngle.value = (Math.acos(Math.min(1, balancedWinner.score)) * 180) / Math.PI;
         }
         renderDome("centroid");
         renderDome("balanced");
-        renderRectangles(state.topWide.geometric_mean.slice(0, 3));
+        renderRectangles([
+          {
+            title: "Top 3 by area",
+            items: state.geoAll.slice(0, 3).map((c) => ({ ...c, color: WORD_COLORS[c.rank - 1], label: `${c.rank}. ${c.candidate}` })),
+          },
+          {
+            title: "Leaning toward one input",
+            items: [
+              { ...closestTo("simA"), color: "#1766a0", label: `closest to "${state.wordA}": ${closestTo("simA").candidate}` },
+              { ...closestTo("simB"), color: "#9b467d", label: `closest to "${state.wordB}": ${closestTo("simB").candidate}` },
+            ],
+          },
+        ]);
         renderComparison();
       }
 
       async function loadModel() {
-        state = { data: await loadModelEmbeddings(els.model.value) };
+        state = { data: { words: await getVocab(els.model.value) } };
         els.vocab.replaceChildren(
           ...state.data.words.map((w) => {
             const option = document.createElement("option");
@@ -827,16 +908,16 @@
             return option;
           }),
         );
-        renderAll();
+        await renderAll();
       }
 
       async function init() {
-        const manifest = await (await fetch("data/manifest.json")).json();
+        const models = await listModels();
         els.model.replaceChildren(
-          ...manifest.models.map((m) => {
+          ...models.map((m) => {
             const option = document.createElement("option");
-            option.value = m;
-            option.textContent = m;
+            option.value = m.name;
+            option.textContent = m.label;
             return option;
           }),
         );

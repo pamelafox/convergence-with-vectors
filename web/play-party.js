@@ -1,7 +1,5 @@
-import { loadModelEmbeddings, simulateConvergence } from "./convergence.js";
+import { getVocab, listModels, simulateConvergence } from "./api.js";
 
-const partyView = document.getElementById("party-view");
-const labView = document.getElementById("lab-view");
 const playButton = document.getElementById("party-play");
 const skipButton = document.getElementById("party-skip");
 const loadingStatus = document.getElementById("party-loading");
@@ -18,37 +16,70 @@ const modelLabelB = document.getElementById("party-model-b");
 const history = document.getElementById("party-history");
 const outcome = document.getElementById("party-outcome");
 const confettiLayer = document.getElementById("party-confetti");
+const explainer = document.getElementById("party-explainer");
+const operatorSelect = document.getElementById("party-operator");
+const operatorHelp = document.getElementById("party-operator-help");
+const modelPickers = document.getElementById("party-model-pickers");
+const selectA = document.getElementById("party-select-a");
+const selectB = document.getElementById("party-select-b");
+const playerChoices = document.querySelectorAll('input[name="party-players"]');
+const wordInputA = document.getElementById("party-word-a");
+const wordInputB = document.getElementById("party-word-b");
+const vocabList = document.getElementById("party-vocab");
+const settingsControls = [operatorSelect, selectA, selectB, ...playerChoices];
 
 const COUNTDOWN_DELAY = 560;
 const SHOUT_DELAY = 850;
 const MAX_ROUNDS = 10;
+
+const OPERATORS = {
+  centroid: { anchor: "centroid", help: "Each player picks the word closest to the midpoint of the two words' vectors." },
+  balanced: { anchor: "balanced", help: "Each player picks the word whose weaker similarity to the two words is highest." },
+  geometric_mean: { anchor: "geometric-mean", help: "Each player picks the word with the biggest product of its similarities to the two words." },
+  textual: { anchor: "textual", help: "Each player embeds the phrase “A and B” and picks the word closest to it." },
+};
 
 let models = [];
 let vocabulary = [];
 let currentRun = 0;
 let skipAnimation = false;
 
-function friendlyModelName(name) {
-  return name
-    .replace("minilm", "MiniLM")
-    .replace("-l", " L")
-    .replaceAll("-", " ");
+function labelFor(name) {
+  return models.find((model) => model.name === name)?.label ?? name;
 }
 
-function setMode(mode) {
-  const partyMode = mode === "party";
-  partyView.hidden = !partyMode;
-  labView.hidden = partyMode;
-  for (const button of document.querySelectorAll("[data-mode]")) {
-    const active = button.dataset.mode === mode;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-selected", String(active));
-  }
-  window.history.replaceState(null, "", partyMode ? "#game-night" : "#vector-lab");
+function randomPlayers() {
+  return document.querySelector('input[name="party-players"]:checked').value === "random";
 }
 
-for (const button of document.querySelectorAll("[data-mode]")) {
-  button.addEventListener("click", () => setMode(button.dataset.mode));
+function setSeatLabels(names) {
+  modelLabelA.textContent = names ? labelFor(names.A) : "Random model";
+  modelLabelB.textContent = names ? labelFor(names.B) : "Random model";
+}
+
+function updateSettings() {
+  const operator = operatorSelect.value;
+  const operatorName = operatorSelect.selectedOptions[0].textContent;
+  const link = document.createElement("a");
+  link.href = `operators.html#${OPERATORS[operator].anchor}`;
+  link.textContent = `How ${operatorName.toLowerCase()} works`;
+  operatorHelp.replaceChildren(`${OPERATORS[operator].help} `, link);
+
+  const random = randomPlayers();
+  modelPickers.hidden = random;
+  setSeatLabels(random ? null : { A: selectA.value, B: selectB.value });
+  explainer.textContent = random
+    ? `Every round, two different models are drawn at random from ${models.length} and both use the ${operatorName.toLowerCase()} operator.`
+    : `${labelFor(selectA.value)} and ${labelFor(selectB.value)} both use the ${operatorName.toLowerCase()} operator for every round.`;
+}
+
+function setSettingsDisabled(disabled) {
+  for (const control of [...settingsControls, wordInputA, wordInputB]) control.disabled = disabled;
+}
+
+function startingWords() {
+  const random = randomPair();
+  return [wordInputA, wordInputB].map((input, index) => input.value.trim().toLowerCase() || random[index]);
 }
 
 function randomPair() {
@@ -100,25 +131,33 @@ async function showCountdown(label, pair, runId) {
   return true;
 }
 
-function addHistoryRow(label, words, converged = false) {
+function historyWord(word, model, second) {
+  const span = document.createElement("span");
+  span.className = second ? "history-word second" : "history-word";
+  span.textContent = word;
+  if (model) {
+    const modelLabel = document.createElement("span");
+    modelLabel.className = "history-model";
+    modelLabel.textContent = labelFor(model);
+    span.appendChild(modelLabel);
+  }
+  return span;
+}
+
+function addHistoryRow(label, words, converged = false, players = null) {
   if (history.querySelector(".empty-history")) history.replaceChildren();
   const item = document.createElement("li");
   if (label === "Opening") item.classList.add("opening-round");
   if (converged) item.classList.add("converged-round");
-  item.setAttribute("aria-label", `${label}: ${words[0]} and ${words[1]}${converged ? ", converged" : ""}`);
+  const said = players ? `${labelFor(players.A)} said ${words[0]}, ${labelFor(players.B)} said ${words[1]}` : `${words[0]} and ${words[1]}`;
+  item.setAttribute("aria-label", `${label}: ${said}${converged ? ", converged" : ""}`);
 
-  const first = document.createElement("span");
-  first.className = "history-word";
-  first.textContent = words[0];
   const plus = document.createElement("span");
   plus.className = "history-plus";
   plus.textContent = converged ? "✓" : "+";
   plus.setAttribute("aria-hidden", "true");
-  const second = document.createElement("span");
-  second.className = "history-word second";
-  second.textContent = words[1];
 
-  item.append(first, plus, second);
+  item.append(historyWord(words[0], players?.A), plus, historyWord(words[1], players?.B, true));
   history.appendChild(item);
 }
 
@@ -142,7 +181,7 @@ function describeEnding(result) {
   const last = result.path[result.path.length - 1];
   if (result.outcome === "loop") return `The models circled back to ${last.pairOut.join(" + ")}. Even models get stuck in a thought loop!`;
   if (result.outcome === "stalled") return `The models ran out of eligible words in round ${result.termination.round}.`;
-  return `Ten rounds, no match yet. These two need another game night.`;
+  return `${MAX_ROUNDS} rounds, no match yet. Time for another game!`;
 }
 
 async function animateGame(result, startWords, runId) {
@@ -150,11 +189,12 @@ async function animateGame(result, startWords, runId) {
   setPlayersState("shouting");
   setBubbles(...startWords);
   prompt.textContent = "The game begins!";
-  announcer.textContent = `${friendlyModelName(models[0].model)} says “${startWords[0]}!” ${friendlyModelName(models[1].model)} says “${startWords[1]}!”`;
+  announcer.textContent = `The opening words are “${startWords[0]}” and “${startWords[1]}”!`;
   addHistoryRow("Opening", startWords);
   await delay(SHOUT_DELAY, runId);
 
   for (const step of result.path.slice(1)) {
+    setSeatLabels(step.models);
     if (!(await showCountdown(`Round ${step.round}`, step.pairIn, runId))) return;
     setPlayersState("shouting");
     setBubbles(step.outputs.A, step.outputs.B);
@@ -162,8 +202,8 @@ async function animateGame(result, startWords, runId) {
     prompt.textContent = converged ? "They found the same word!" : "New pair unlocked";
     announcer.textContent = converged
       ? `Both models shouted “${step.outputs.A}!”`
-      : `${friendlyModelName(models[0].model)} says “${step.outputs.A}!” ${friendlyModelName(models[1].model)} says “${step.outputs.B}!”`;
-    addHistoryRow(`Round ${step.round}`, step.pairOut, converged);
+      : `${labelFor(step.models.A)} says “${step.outputs.A}!” ${labelFor(step.models.B)} says “${step.outputs.B}!”`;
+    addHistoryRow(`Round ${step.round}`, step.pairOut, converged, step.models);
     await delay(SHOUT_DELAY, runId);
   }
 
@@ -188,15 +228,22 @@ async function animateGame(result, startWords, runId) {
   }
 
   playButton.disabled = false;
-  playButton.innerHTML = '<span aria-hidden="true">↻</span> Play again with new words';
+  setSettingsDisabled(false);
+  playButton.innerHTML = '<span aria-hidden="true">↻</span> Play again';
   skipButton.hidden = true;
   loadingStatus.textContent = "Ready for another game whenever you are.";
 }
 
 async function startGame() {
+  const startWords = startingWords();
+  if (startWords[0] === startWords[1]) {
+    loadingStatus.textContent = "Pick two different starting words.";
+    return;
+  }
   const runId = ++currentRun;
   skipAnimation = false;
   playButton.disabled = true;
+  setSettingsDisabled(true);
   skipButton.hidden = false;
   skipButton.disabled = false;
   skipButton.textContent = "Skip to the result";
@@ -205,11 +252,25 @@ async function startGame() {
   outcome.className = "outcome-pill";
   history.innerHTML = '<li class="empty-history">The opening words are almost ready…</li>';
   confettiLayer.replaceChildren();
-  const startWords = randomPair();
-  const result = simulateConvergence(models[0], models[1], ...startWords, {
-    operator: "centroid",
-    maxRounds: MAX_ROUNDS,
-  });
+  const random = randomPlayers();
+  let result;
+  try {
+    result = await simulateConvergence({
+      modelA: random ? undefined : selectA.value,
+      modelB: random ? undefined : selectB.value,
+      randomModels: random,
+      wordA: startWords[0],
+      wordB: startWords[1],
+      operator: operatorSelect.value,
+      maxRounds: MAX_ROUNDS,
+    });
+  } catch (error) {
+    loadingStatus.textContent = `The models couldn't play: ${error.message}`;
+    playButton.disabled = false;
+    setSettingsDisabled(false);
+    skipButton.hidden = true;
+    return;
+  }
   await animateGame(result, startWords, runId);
 }
 
@@ -220,30 +281,25 @@ skipButton.addEventListener("click", () => {
 });
 
 playButton.addEventListener("click", startGame);
+for (const control of settingsControls) control.addEventListener("change", updateSettings);
 
 async function init() {
-  const response = await fetch("data/manifest.json");
-  if (!response.ok) throw new Error(`Manifest request failed: ${response.status}`);
-  const manifest = await response.json();
-  if (manifest.models.length < 2) throw new Error("Game night needs at least two models.");
-  models = await Promise.all(manifest.models.slice(0, 2).map((model) => loadModelEmbeddings(model)));
-  vocabulary = models[0].words.filter((word) => models[1].index.has(word));
-  if (vocabulary.length < 2) throw new Error("The models do not share enough vocabulary words.");
-
-  modelLabelA.textContent = friendlyModelName(models[0].model);
-  modelLabelB.textContent = friendlyModelName(models[1].model);
-  const friendlyNames = models.map((model) => friendlyModelName(model.model));
-  for (const [index, label] of [...document.querySelectorAll("[data-seat-label]")].entries()) {
-    label.textContent = friendlyNames[index % friendlyNames.length];
+  models = await listModels();
+  if (models.length < 2) throw new Error("The game needs at least two models.");
+  for (const select of [selectA, selectB]) {
+    select.replaceChildren(...models.map((model) => new Option(model.label, model.name)));
   }
+  selectB.selectedIndex = 1;
+  // Every model's vocabulary comes from the same word list, so the first one works for picking start words.
+  vocabulary = await getVocab(models[0].name);
+  if (vocabulary.length < 2) throw new Error("The vocabulary is too small to play.");
+  vocabList.replaceChildren(...vocabulary.map((word) => new Option(word)));
 
-  loadingStatus.textContent = `${friendlyNames.join(" and ")} are ready.`;
+  updateSettings();
+  loadingStatus.textContent = `${models.length} models are ready to play.`;
   playButton.disabled = false;
 }
 
-const requestedMode = window.location.hash === "#vector-lab" ? "lab" : "party";
-setMode(requestedMode);
 init().catch((error) => {
-  loadingStatus.textContent = `Could not start game night: ${error.message}`;
-  announcer.textContent = "The vector lab is still available while game night is offline.";
+  loadingStatus.textContent = `Could not start the game: ${error.message}`;
 });

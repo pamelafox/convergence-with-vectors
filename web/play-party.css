@@ -57,6 +57,18 @@
   box-shadow: 0 4px 12px rgb(69 42 139 / 25%);
 }
 
+/* The Operators link goes to another page, so it's an <a> styled to match the mode buttons */
+.mode-switch a.mode-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1.2rem;
+  text-decoration: none;
+}
+
+.mode-switch a.mode-button:not(.active):hover {
+  color: var(--party-purple);
+}
+
 .party-intro {
   max-width: 760px;
   margin: 0 auto 1.5rem;
@@ -87,6 +99,92 @@
   font-weight: 900;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+.party-settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 1rem;
+  max-width: 860px;
+  margin: 0 auto 1.2rem;
+}
+
+.setting {
+  margin: 0;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid #e7e1f1;
+  border-radius: 1rem;
+  background: white;
+}
+
+.setting > label,
+.setting legend {
+  display: block;
+  padding: 0;
+  margin-bottom: 0.4rem;
+  color: var(--party-ink);
+  font-weight: 800;
+}
+
+.setting legend {
+  float: left;
+  width: 100%;
+}
+
+.setting select {
+  font-size: 1rem;
+  padding: 0.35rem;
+}
+
+.setting > select {
+  width: 100%;
+}
+
+.setting-help {
+  margin: 0.5rem 0 0;
+  color: #625d74;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.setting .choice {
+  display: block;
+  clear: left;
+  margin: 0.2rem 0;
+}
+
+.model-pickers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.model-pickers[hidden] {
+  display: none;
+}
+
+.start-words {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  clear: left;
+  color: var(--party-pink);
+  font-weight: 900;
+}
+
+.start-words input {
+  flex: 1;
+  min-width: 0;
+  font-size: 1rem;
+  padding: 0.35rem;
+}
+
+.model-pickers label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
 }
 
 .party-controls {
@@ -257,18 +355,13 @@
 }
 
 .active-player .seat-label {
+  max-width: 150px;
   background: var(--party-pink);
   box-shadow: 0 4px 10px rgb(34 18 72 / 28%);
 }
 
-.seat-1 { left: 50%; top: 12%; }
-.seat-2 { left: 78%; top: 23%; }
 .seat-3 { left: 91%; top: 51%; }
-.seat-4 { left: 78%; top: 80%; }
-.seat-5 { left: 50%; top: 90%; }
-.seat-6 { left: 22%; top: 80%; }
 .seat-7 { left: 9%; top: 51%; }
-.seat-8 { left: 22%; top: 23%; }
 
 .speech-bubble {
   position: absolute;
@@ -487,6 +580,14 @@
   background: #fff0f7;
 }
 
+.history-model {
+  display: block;
+  margin-top: 0.2rem;
+  color: #756e83;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
 .history-plus {
   color: var(--party-pink);
   font-size: 1.3rem;
@@ -503,10 +604,6 @@
 
 .party-history li.empty-history::before {
   content: none;
-}
-
-.lab-view {
-  padding-bottom: 4rem;
 }
 
 @keyframes countdown-pop {
@@ -575,20 +672,14 @@
 }
 
 @media (max-width: 430px) {
-  .mode-switch .mode-button {
+  .mode-switch .mode-button,
+  .mode-switch a.mode-button {
     padding: 0.5rem 0.7rem;
     font-size: 0.82rem;
   }
 
   .model-person {
     width: 65px;
-  }
-
-  .seat-2,
-  .seat-4,
-  .seat-6,
-  .seat-8 {
-    opacity: 0.65;
   }
 
   .left-bubble { left: 45px; }

@@ -5,9 +5,9 @@ import numpy as np
 from rich.console import Console
 from rich.table import Table
 
-from embeddings import MODELS, embed_texts
+from embeddings import DEFAULT_MODELS, embed_texts
 
-MODEL_NAMES = list(MODELS)
+MODEL_NAMES = DEFAULT_MODELS
 DEFAULT_TEXTS = ["fire", "whale"]
 
 

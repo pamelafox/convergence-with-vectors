@@ -16,13 +16,14 @@ Example:
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
 from pathlib import Path
 
 from rich.console import Console
 from rich.table import Table
 
-from embeddings import MODELS, get_vocab_embeddings
-from operators import OPERATOR_NAMES, apply_operator
+from embeddings import DEFAULT_MODELS, VocabEmbeddings, get_vocab_embeddings
+from operators import OPERATOR_NAMES, EmbedFn, apply_operator
 from reporting import ResultRow, candidate_rows, write_csv, write_json
 from vocab import load_vocab
 
@@ -37,7 +38,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--models",
         nargs=2,
-        default=list(MODELS.keys())[:2],
+        default=DEFAULT_MODELS,
         metavar=("MODEL_A", "MODEL_B"),
         help="Exactly two model short names or Hugging Face ids, one per 'player' (default: both MiniLM models).",
     )
@@ -48,6 +49,69 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output-csv", type=Path, help="Optional path to write machine-readable CSV results.")
     parser.add_argument("--output-json", type=Path, help="Optional path to write machine-readable JSON results.")
     return parser
+
+
+def run_simulation(
+    models: list[str],
+    vocab_by_model: dict[str, VocabEmbeddings],
+    word_a: str,
+    word_b: str,
+    *,
+    operator: str = "centroid",
+    template: str = "{a} and {b}",
+    max_rounds: int = 10,
+    top_k: int = 5,
+    include_inputs: bool = False,
+    embed: EmbedFn | None = None,
+    pick_models: Callable[[int], list[str]] | None = None,
+) -> dict:
+    """Play the game between two players (``models[0]`` and ``models[1]``, which may be the same model).
+
+    If ``pick_models`` is given, it's called with each round number and returns
+    that round's two players instead, so the players can change every round.
+
+    Returns a dict with ``path`` (per-round dicts with ``round``, ``pair_in``,
+    ``outputs``, ``pair_out``, the round's two ``models`` and ranked ``candidates``,
+    indexed by player), ``outcome`` ("converged", "loop", "stalled" or "round_limit")
+    and ``termination`` (the round it ended on, plus ``repeated_round`` for loops
+    or ``reason`` for stalls).
+    """
+    if len(models) != 2:
+        raise ValueError("Convergence simulation requires exactly two models")
+
+    current_pair = (word_a, word_b)
+    visited: dict[tuple[str, str], int] = {current_pair: 0}
+    path: list[dict] = [{"round": 0, "pair_in": current_pair, "outputs": None, "pair_out": current_pair, "models": None, "candidates": None}]
+    outcome = "round_limit"
+    termination: dict = {"round": max_rounds}
+
+    for round_number in range(1, max_rounds + 1):
+        players = pick_models(round_number) if pick_models else models
+        exclude = set() if include_inputs else set(current_pair)
+        candidates = [
+            apply_operator(operator, model_name, vocab_by_model[model_name], current_pair[0], current_pair[1], top_k=top_k, exclude=exclude, template=template, embed=embed) for model_name in players
+        ]
+        if not all(candidates):
+            outcome = "stalled"
+            termination = {"round": round_number, "reason": "No candidates remained after excluding the current input words."}
+            break
+
+        new_pair = (candidates[0][0].candidate, candidates[1][0].candidate)
+        path.append({"round": round_number, "pair_in": current_pair, "outputs": new_pair, "pair_out": new_pair, "models": tuple(players), "candidates": candidates})
+
+        if new_pair[0] == new_pair[1]:
+            outcome = "converged"
+            termination = {"round": round_number}
+            break
+        # With changing players, a repeated pair can lead somewhere new, so it isn't a loop
+        if new_pair in visited and not pick_models:
+            outcome = "loop"
+            termination = {"round": round_number, "repeated_round": visited[new_pair]}
+            break
+        visited.setdefault(new_pair, round_number)
+        current_pair = new_pair
+
+    return {"path": path, "outcome": outcome, "termination": termination}
 
 
 def simulate_convergence(
@@ -67,63 +131,33 @@ def simulate_convergence(
 
     Returns:
         A tuple of ``(path, outcome, report_rows)`` where ``path`` is a list of
-        per-round dicts (``round``, ``pair_in``, ``outputs``, ``pair_out``),
-        ``outcome`` is one of "converged", "loop", "stalled", or "round_limit", and
+        per-round dicts (see :func:`run_simulation`), ``outcome`` is one of
+        "converged", "loop", "stalled", or "round_limit", and
         ``report_rows`` holds every ranked candidate seen along the way.
     """
-    models = models or list(MODELS.keys())[:2]
+    models = models or DEFAULT_MODELS
     if len(models) != 2:
         raise ValueError("Convergence simulation requires exactly two models")
 
     words = load_vocab(vocab_path)
     vocab_by_model = {m: get_vocab_embeddings(m, words, cache_dir) for m in models}
+    result = run_simulation(models, vocab_by_model, word_a, word_b, operator=operator, template=template, max_rounds=max_rounds, top_k=top_k, include_inputs=include_inputs)
+    path, outcome = result["path"], result["outcome"]
 
-    current_pair = (word_a, word_b)
-    visited: dict[tuple[str, str], int] = {current_pair: 0}
-    path: list[dict] = [{"round": 0, "pair_in": current_pair, "outputs": None, "pair_out": current_pair}]
     report_rows: list[ResultRow] = []
-    outcome = "round_limit"
-
-    for round_number in range(1, max_rounds + 1):
-        exclude = set() if include_inputs else set(current_pair)
-        outputs: dict[str, str] = {}
-        for model_name in models:
-            candidates = apply_operator(operator, model_name, vocab_by_model[model_name], current_pair[0], current_pair[1], top_k=top_k, exclude=exclude, template=template)
-            if not candidates:
-                outcome = "stalled"
-                break
-            outputs[model_name] = candidates[0].candidate
+    for step in path[1:]:
+        for model_name, candidates in zip(step["models"], step["candidates"], strict=True):
             report_rows.extend(
                 candidate_rows(
-                    current_pair[0],
-                    current_pair[1],
+                    step["pair_in"][0],
+                    step["pair_in"][1],
                     model_name,
                     operator,
                     candidates,
                     template=template if operator == "textual" else None,
-                    round_number=round_number,
+                    round_number=step["round"],
                 )
             )
-        if outcome == "stalled":
-            break
-
-        new_pair = (outputs[models[0]], outputs[models[1]])
-        path.append({"round": round_number, "pair_in": current_pair, "outputs": outputs, "pair_out": new_pair})
-
-        if outputs[models[0]] == outputs[models[1]]:
-            outcome = "converged"
-            current_pair = new_pair
-            break
-        if new_pair in visited:
-            outcome = "loop"
-            current_pair = new_pair
-            break
-
-        visited[new_pair] = round_number
-        current_pair = new_pair
-    else:
-        outcome = "round_limit"
-
     for row in report_rows:
         row.outcome = outcome
 
@@ -149,12 +183,12 @@ def print_path(path: list[dict], models: list[str], console: Console) -> None:
     table.add_column(f"{models[1]} ->")
     table.add_column("Pair out")
     for step in path:
-        outputs = step["outputs"] or {}
+        outputs = step["outputs"] or ("", "")
         table.add_row(
             str(step["round"]),
             " / ".join(step["pair_in"]),
-            outputs.get(models[0], ""),
-            outputs.get(models[1], ""),
+            outputs[0],
+            outputs[1],
             " / ".join(step["pair_out"]),
         )
     console.print(table)

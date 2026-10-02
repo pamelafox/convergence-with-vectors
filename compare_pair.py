@@ -13,7 +13,7 @@ from pathlib import Path
 
 from rich.console import Console
 
-from embeddings import MODELS, get_vocab_embeddings
+from embeddings import DEFAULT_MODELS, MODELS, get_vocab_embeddings
 from operators import DEFAULT_TEMPLATES, OPERATOR_NAMES, apply_operator
 from reporting import ResultRow, candidate_rows, render_side_by_side, write_csv, write_json
 from vocab import load_vocab
@@ -28,8 +28,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--models",
         nargs="+",
-        default=list(MODELS.keys()),
-        help=f"Model short names or Hugging Face ids to compare (default: {' '.join(MODELS.keys())}).",
+        default=DEFAULT_MODELS,
+        help=f"Model short names or Hugging Face ids to compare (default: {' '.join(DEFAULT_MODELS)}; available: {' '.join(MODELS)}).",
     )
     parser.add_argument(
         "--operators",
@@ -68,7 +68,7 @@ def run_pair_comparison(
     cache_dir: Path = Path(".embedding_cache"),
 ) -> list[ResultRow]:
     """Run every requested operator (and template) for every model. Returns flat report rows."""
-    models = models or list(MODELS.keys())
+    models = models or DEFAULT_MODELS
     operators = operators or OPERATOR_NAMES
     templates = templates or DEFAULT_TEMPLATES
     exclude = set() if include_inputs else {word_a, word_b}

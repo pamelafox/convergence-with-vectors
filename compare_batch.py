@@ -16,7 +16,7 @@ from pathlib import Path
 from rich.console import Console
 
 from compare_pair import run_pair_comparison
-from embeddings import MODELS
+from embeddings import DEFAULT_MODELS
 from operators import DEFAULT_TEMPLATES, OPERATOR_NAMES
 from reporting import ResultRow, render_flat_table, write_csv, write_json
 
@@ -42,7 +42,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--vocab", required=True, type=Path, help="Path to a newline-delimited vocabulary file.")
     parser.add_argument("--pairs", required=True, type=Path, help="CSV file with 'word_a' and 'word_b' columns.")
     parser.add_argument("--top-k", type=int, default=5, help="Ranked candidates per operator per pair (default: 5).")
-    parser.add_argument("--models", nargs="+", default=list(MODELS.keys()), help="Model short names or Hugging Face ids to compare.")
+    parser.add_argument("--models", nargs="+", default=DEFAULT_MODELS, help="Model short names or Hugging Face ids to compare.")
     parser.add_argument("--operators", nargs="+", default=OPERATOR_NAMES, choices=OPERATOR_NAMES, help="Operators to run.")
     parser.add_argument("--template", dest="templates", action="append", help="Phrase template(s) for the 'textual' operator; repeatable.")
     parser.add_argument("--include-inputs", action="store_true", help="Include each pair's own words as possible candidates.")

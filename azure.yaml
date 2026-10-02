@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: convergence-with-vectors
+metadata:
+  template: simple-fastapi-container-app@0.0.1
+services:
+  api:
+    project: .
+    language: py
+    host: containerapp
+    docker:
+      path: Dockerfile
+      # Build in Azure Container Registry: no local Docker needed, and no ARM-to-x86 cross-build on Apple silicon
+      remoteBuild: true

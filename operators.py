@@ -16,12 +16,16 @@ non-convergence here as evidence for or against analogy arithmetic.
 
 from __future__ import annotations
 
+import string
 from collections.abc import Callable
 from dataclasses import dataclass
 
 import numpy as np
 
 from embeddings import VocabEmbeddings, embed_texts
+
+#: Signature of an embedding function: (model_name, texts) -> L2-normalized rows.
+EmbedFn = Callable[[str, list[str]], np.ndarray]
 
 #: Names of every operator, in the order they should be presented by default.
 OPERATOR_NAMES: list[str] = ["centroid", "balanced", "geometric_mean", "textual"]
@@ -118,6 +122,20 @@ def rank_candidates(
     ]
 
 
+def render_template(template: str, word_a: str, word_b: str) -> str:
+    """Fill a "textual" phrase template, allowing only bare ``{a}`` and ``{b}`` placeholders.
+
+    Rejecting anything else (``{a.__class__}``, ``{0}``, format specs) keeps
+    user-supplied templates from reaching into Python objects via ``str.format``.
+    """
+    for _, field, spec, conversion in string.Formatter().parse(template):
+        if field is None:
+            continue
+        if field not in ("a", "b") or spec or conversion:
+            raise ValueError("Template may only contain the placeholders {a} and {b}")
+    return template.format(a=word_a, b=word_b)
+
+
 def apply_operator(
     operator_name: str,
     model_name: str,
@@ -128,6 +146,7 @@ def apply_operator(
     top_k: int = 10,
     exclude: set[str] | None = None,
     template: str = "{a} and {b}",
+    embed: EmbedFn | None = None,
 ) -> list[CandidateScore]:
     """Embed ``word_a``/``word_b`` (and, for "textual", a phrase) and rank the vocabulary.
 
@@ -141,11 +160,13 @@ def apply_operator(
         exclude: Words to exclude from results (defaults to none here; callers
             typically pass ``{word_a, word_b}`` unless ``--include-inputs`` is set).
         template: Phrase template used only by the "textual" operator.
+        embed: Function used to embed the inputs (and phrase); defaults to running the model directly.
     """
     if operator_name not in OPERATOR_NAMES:
         raise ValueError(f"Unknown operator {operator_name!r}; choose from {OPERATOR_NAMES}")
+    embed = embed or embed_texts
 
-    vec_a, vec_b = embed_texts(model_name, [word_a, word_b])
+    vec_a, vec_b = embed(model_name, [word_a, word_b])
     sim_a = vocab.similarities_to(vec_a)
     sim_b = vocab.similarities_to(vec_b)
 
@@ -153,8 +174,8 @@ def apply_operator(
         query = normalize(vec_a + vec_b)
         scores = vocab.similarities_to(query)
     elif operator_name == "textual":
-        phrase = template.format(a=word_a, b=word_b)
-        phrase_vec = embed_texts(model_name, [phrase])[0]
+        phrase = render_template(template, word_a, word_b)
+        phrase_vec = embed(model_name, [phrase])[0]
         scores = vocab.similarities_to(phrase_vec)
     else:
         scores = PAIRWISE_OPERATORS[operator_name](sim_a, sim_b)
