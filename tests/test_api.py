@@ -65,6 +65,11 @@ def test_vocab_returns_candidate_words(client):
     assert sorted(client.get("/api/vocab", params={"model": "minilm-l6"}).json()["words"]) == sorted(VOCAB)
 
 
+def test_starting_words_are_the_hand_picked_list(client):
+    words = client.get("/api/starting-words").json()["words"]
+    assert "fire" in words and "laryngoscope" not in words
+
+
 def test_unknown_model_is_404(client):
     assert client.get("/api/vocab", params={"model": "nope"}).status_code == 404
 

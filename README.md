@@ -200,7 +200,12 @@ Vocabulary embeddings are stored in a SQLite database with a single `embeddings`
 vocabulary are the candidates (`in_vocab = 1`). Anything embedded on demand, like starting words outside the
 vocabulary or `textual` phrases, is cached in the same table (`in_vocab = 0`) and never becomes a candidate.
 
-1. Build the database (embeds the ~1000-word [data/vocab_1000.txt](data/vocab_1000.txt) with each model):
+1. Build the database (embeds the 5000-word [data/vocab_5000.txt](data/vocab_5000.txt) with each model):
+
+    The vocabulary starts with the hand-picked [data/vocab_1000.txt](data/vocab_1000.txt), then adds the most common
+    concrete nouns from the [Brysbaert et al. concreteness ratings](https://github.com/ArtsEngine/concreteness),
+    minus plurals, profanity, and the words in [data/vocab_exclude.txt](data/vocab_exclude.txt).
+    Regenerate it with `uv run --with better-profanity --with nltk build_vocab.py`.
 
     ```shell
     uv run build_db.py

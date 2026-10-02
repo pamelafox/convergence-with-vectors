@@ -8,6 +8,7 @@
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.1.0/dist/reveal.css">
 		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.1.0/dist/theme/simple.css" id="theme">
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inconsolata|Roboto:300,400,500|Work+Sans:400,700">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;700&display=swap">
         <link rel="stylesheet" href="slides_assets/a11y-dark.min.css">
 		<link rel="stylesheet" href="slides_assets/slides.css">
 	</head>
@@ -78,7 +79,7 @@
             </section>
 
             <section>
-                <h3 style="text-align:center;">Now the models play!</h3>
+                <h3>Now the models play!</h3>
                 <video data-autoplay muted loop playsinline src="slides_assets/models_play.mp4" style="display:block; margin:0 auto; height:480px;"
                     aria-label="Recording of the game: MiniLM L6 and mxbai Embed Large start from piano and rain, say musician and umbrella, then piano and artist, then both say musician"></video>
                 <p style="text-align:center; margin-top:10px;">
@@ -198,14 +199,15 @@ np.dot(fire, flame)         # 0.80
                     <thead><tr><th>Word</th><th>Cosine similarity</th></tr></thead>
                     <tbody>
                         <tr><td>flame</td><td>0.80</td></tr>
-                        <tr><td>smoke</td><td>0.67</td></tr>
-                        <tr><td>firefighter</td><td>0.61</td></tr>
-                        <tr class="fragment"><td>flamingo 🦩</td><td>0.58</td></tr>
-                        <tr><td>stove</td><td>0.57</td></tr>
+                        <tr><td>firework</td><td>0.78</td></tr>
+                        <tr><td>wildfire</td><td>0.71</td></tr>
+                        <tr><td>fireball</td><td>0.70</td></tr>
+                        <tr><td>bonfire</td><td>0.69</td></tr>
+                        <tr class="fragment"><td>⋮ #18: flamingo 🦩</td><td>0.58</td></tr>
                     </tbody>
                 </table>
                 <p class="fragment smaller">Flamingo?! Models see <em>spelling</em> too: "flam-" ≈ "flame".</p>
-                <aside class="notes">MiniLM L6, our ~1000-word vocabulary. This is vector search!</aside>
+                <aside class="notes">MiniLM L6, our 5000-word vocabulary. This is vector search! Lots of "fire-" compounds at the top, too.</aside>
             </section>
 
             <section>
@@ -228,7 +230,7 @@ np.dot(fire, flame)         # 0.80
                 <h3>The game, as code</h3>
 
                 <ol>
-                    <li>Embed a vocabulary of ~1000 concrete nouns (once).</li>
+                    <li>Embed a vocabulary of 5000 concrete nouns (once).</li>
                     <li>Embed the two input words, <strong>a</strong> and <strong>b</strong>.</li>
                     <li>For every candidate word <strong>w</strong>:
                         <code>s_a = cos(w, a)</code>, <code>s_b = cos(w, b)</code></li>
@@ -334,7 +336,7 @@ return "round_limit", max_rounds
                 <pre><code class="language-bash" data-trim>
 uv run model_battle.py --games 100 --operator centroid
                 </code></pre>
-                <p class="smaller">Runs in ~10 seconds: the vocabulary vectors are precomputed in SQLite.</p>
+                <p class="smaller">Runs in ~20 seconds: the vocabulary vectors are precomputed in SQLite.</p>
             </section>
 
             <section>
@@ -353,10 +355,10 @@ uv run model_battle.py --games 100 --operator centroid
                         <h4>🤝 Most</h4>
                         <table class="compact">
                             <tbody>
-                                <tr><td>MiniLM L6 + MiniLM L12</td><td>97%</td></tr>
-                                <tr><td>MiniLM L6 + BGE Small</td><td>97%</td></tr>
-                                <tr><td>MiniLM L12 + BGE Small</td><td>95%</td></tr>
-                                <tr><td>BGE Small + mxbai</td><td>92%</td></tr>
+                                <tr><td>MiniLM L6 + MiniLM L12</td><td>96%</td></tr>
+                                <tr><td>MiniLM L12 + BGE Small</td><td>96%</td></tr>
+                                <tr><td>MiniLM L12 + mxbai</td><td>94%</td></tr>
+                                <tr><td>BGE Small + mxbai</td><td>94%</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -364,10 +366,10 @@ uv run model_battle.py --games 100 --operator centroid
                         <h4>🙅 Least</h4>
                         <table class="compact">
                             <tbody>
-                                <tr><td>BGE Small + Qwen3</td><td>71%</td></tr>
-                                <tr><td>mxbai + Qwen3</td><td>71%</td></tr>
-                                <tr><td>Harrier + Qwen3</td><td>73%</td></tr>
-                                <tr><td>mxbai + Harrier</td><td>73%</td></tr>
+                                <tr><td>BGE Small + Qwen3</td><td>75%</td></tr>
+                                <tr><td>MiniLM L12 + Qwen3</td><td>79%</td></tr>
+                                <tr><td>mxbai + Qwen3</td><td>80%</td></tr>
+                                <tr><td>BGE Small + Harrier</td><td>81%</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -381,12 +383,12 @@ uv run model_battle.py --games 100 --operator centroid
                 <table class="compact">
                     <thead><tr><th>Model</th><th>Converges vs. others</th><th>Avg rounds</th><th>Loops</th><th><a target="_blank" href="https://mteb-leaderboard.hf.space/benchmark/MTEB(eng%2C%20v2)">MTEB (eng)</a></th><th><a target="_blank" href="https://mteb-leaderboard.hf.space/benchmark/MTEB(Multilingual%2C%20v2)">MTEB (multi)</a></th></tr></thead>
                     <tbody>
-                        <tr><td>MiniLM L6</td><td>88%</td><td>2.6</td><td>12%</td><td>59.0</td><td>41.4</td></tr>
-                        <tr><td>MiniLM L12</td><td>87%</td><td>2.5</td><td>12%</td><td>–</td><td>–</td></tr>
-                        <tr><td>BGE Small</td><td>86%</td><td>2.8</td><td>13%</td><td>64.3</td><td>43.8</td></tr>
-                        <tr><td>mxbai Embed Large</td><td>83%</td><td>2.7</td><td>17%</td><td>66.3</td><td>45.9</td></tr>
-                        <tr><td>Harrier 270M</td><td>77%</td><td>3.1</td><td>22%</td><td>–</td><td>66.6</td></tr>
-                        <tr><td>Qwen3 Embedding 0.6B</td><td>73%</td><td>3.4</td><td>26%</td><td>70.5</td><td>64.3</td></tr>
+                        <tr><td>MiniLM L6</td><td>90%</td><td>2.4</td><td>10%</td><td>59.0</td><td>41.4</td></tr>
+                        <tr><td>MiniLM L12</td><td>90%</td><td>2.4</td><td>10%</td><td>–</td><td>–</td></tr>
+                        <tr><td>BGE Small</td><td>88%</td><td>2.5</td><td>12%</td><td>64.3</td><td>43.8</td></tr>
+                        <tr><td>mxbai Embed Large</td><td>88%</td><td>2.6</td><td>11%</td><td>66.3</td><td>45.9</td></tr>
+                        <tr><td>Harrier 270M</td><td>84%</td><td>3.0</td><td>16%</td><td>–</td><td>66.6</td></tr>
+                        <tr><td>Qwen3 Embedding 0.6B</td><td>81%</td><td>3.3</td><td>18%</td><td>70.5</td><td>64.3</td></tr>
                     </tbody>
                 </table>
                 <p class="fragment">The <strong>highest</strong> MTEB scores converge the <strong>least</strong>. Benchmarks measure <em>their</em> tasks, not yours!</p>
@@ -398,10 +400,10 @@ uv run model_battle.py --games 100 --operator centroid
                 <table class="compact">
                     <thead><tr><th>Operator</th><th>Converged</th><th>Avg rounds</th><th>Loops</th></tr></thead>
                     <tbody>
-                        <tr><td>Textual</td><td>85%</td><td>2.8</td><td>15%</td></tr>
-                        <tr><td>Centroid</td><td>82%</td><td>2.8</td><td>17%</td></tr>
-                        <tr><td>Geometric mean</td><td>80%</td><td>3.1</td><td>19%</td></tr>
-                        <tr class="fragment"><td><strong>Balanced</strong></td><td><strong>51%</strong></td><td>4.6</td><td>27%</td></tr>
+                        <tr><td>Centroid</td><td>87%</td><td>2.7</td><td>13%</td></tr>
+                        <tr><td>Textual</td><td>86%</td><td>2.8</td><td>14%</td></tr>
+                        <tr><td>Geometric mean</td><td>84%</td><td>3.1</td><td>14%</td></tr>
+                        <tr class="fragment"><td><strong>Balanced</strong></td><td><strong>51%</strong></td><td>4.5</td><td>22%</td></tr>
                     </tbody>
                 </table>
                 <p class="fragment">Balanced picks from a crowded middle, where tiny differences between models flip the winner.
@@ -411,14 +413,14 @@ uv run model_battle.py --games 100 --operator centroid
             <section>
                 <h3>The longest roads to convergence</h3>
 
-                <p class="smaller"><strong>MiniLM L6 vs. Qwen3</strong>, 10 rounds:<br>
-                    bear + clay → donkey + clam → elephant + dolphin → whale + salamander → frog + jellyfish →
-                    lizard + salamander → frog + crocodile → alligator + salamander → lizard + crocodile →
-                    alligator + scorpion → <strong>crocodile</strong> 🐊</p>
-                <p class="smaller"><strong>BGE Small vs. Qwen3</strong>, 10 rounds:<br>
-                    pistachio + rocket → peanut + pomegranate → shrimp + pistachio → peanut + sardine →
-                    nut + mackerel → peanut + herring → walnut + mackerel → herring + sardine →
-                    salmon + mackerel → trout + sardine → <strong>salmon</strong> 🐟</p>
+                <p class="smaller"><strong>MiniLM L6 vs. Qwen3</strong>, 9 rounds:<br>
+                    banjo + pistachio → pie + banana → fruit + pan → fruitcake + banana → fruit + papaya →
+                    mango + peach → fruit + pomegranate → watermelon + strawberry → fruit + blueberry →
+                    <strong>strawberry</strong> 🍓</p>
+                <p class="smaller"><strong>MiniLM L12 vs. Qwen3</strong>, 9 rounds:<br>
+                    ivy + butcher → oak + visor → pine + ink → wood + pond → wetland + stone →
+                    pond + watershed → wetland + river → riverbed + watershed → river + riverbank →
+                    <strong>riverbed</strong> 🏞️</p>
                 <p class="smaller">Qwen3 gets stuck in a theme and drags the other model along.</p>
             </section>
 
@@ -426,11 +428,11 @@ uv run model_battle.py --games 100 --operator centroid
                 <h3>Surprisingly weird choices</h3>
 
                 <ul>
-                    <li><strong>blubber + engine</strong> → MiniLM L6 says <em>bluejay</em>, then <em>blueberry</em> 🫐
-                        <br><span class="smaller">"blu-" spelling beats meaning</span></li>
+                    <li><strong>blubber + engine</strong> → MiniLM L6 says <em>motor</em>, but <em>bluebird</em> 🐦 is a close second
+                        <br><span class="smaller">"blu-" spelling almost beats meaning</span></li>
                     <li><strong>fire</strong> is close to <em>flamingo</em> 🦩</li>
-                    <li><strong>fire + whale</strong> → Qwen3 says <em>narwhal</em>; MiniLM says <em>flame</em></li>
-                    <li><strong>earring + modem</strong> → centroid says <em>ear</em>; balanced says <em>phone</em></li>
+                    <li><strong>fire + whale</strong> → Qwen3 says <em>wildfire</em>, then <em>narwhal</em>; MiniLM says <em>flame</em>, then <em>whaler</em></li>
+                    <li><strong>earring + modem</strong> → centroid says <em>earphone</em>; balanced says <em>telephone</em></li>
                 </ul>
                 <p class="smaller">Single words are ambiguous and short: models fall back on spelling and the stronger word.</p>
             </section>

@@ -7,7 +7,7 @@ but keeps any embeddings the backend has cached on demand.
 
 Example:
 
-    uv run build_db.py --vocab data/vocab_1000.txt --db data/convergence.db
+    uv run build_db.py --vocab data/vocab_5000.txt --db data/convergence.db
 """
 
 from __future__ import annotations
@@ -22,7 +22,7 @@ from vocab import load_vocab
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--vocab", type=Path, default=Path("data/vocab_1000.txt"), help="Path to a newline-delimited vocabulary file (default: data/vocab_1000.txt).")
+    parser.add_argument("--vocab", type=Path, default=Path("data/vocab_5000.txt"), help="Path to a newline-delimited vocabulary file (default: data/vocab_5000.txt).")
     parser.add_argument("--models", nargs="+", default=list(MODELS), choices=list(MODELS), help="Models to embed the vocabulary with (default: every model that's available).")
     parser.add_argument("--db", type=Path, default=Path("data/convergence.db"), help="SQLite database to write (default: data/convergence.db).")
     parser.add_argument("--cache-dir", type=Path, default=Path(".embedding_cache"), help="Directory for cached vocabulary embeddings.")

@@ -2,6 +2,17 @@
     font-family: "Work Sans", sans-serif;
   }
 
+  body.reveal-viewport {
+    --paper: #fbfbf8;
+    background-color: var(--paper);
+    background-image:
+      radial-gradient(ellipse at center, var(--paper) 35%, rgba(251, 251, 248, 0) 80%),
+      repeating-radial-gradient(circle at 0% 100%, transparent 0 79px, rgba(55, 118, 171, 0.16) 79px 80px),
+      repeating-conic-gradient(from 0deg at 0% 100%, transparent 0deg 7.8deg, rgba(55, 118, 171, 0.12) 7.8deg 8deg),
+      radial-gradient(circle at 0% 100%, rgba(55, 118, 171, 0.14), transparent 60%),
+      radial-gradient(circle at 100% 0%, rgba(55, 118, 171, 0.08), transparent 50%);
+  }
+
   .reveal .slides section a {
     text-decoration: underline;
   }
@@ -45,8 +56,24 @@
   .reveal h4,
   .reveal h5,
   .reveal h6 {
-    font-family: "Roboto", sans-serif;
-    color: rgb(50, 50, 50);
+    font-family: "Comfortaa", sans-serif;
+    font-weight: 700;
+    color: #1e4a72;
+  }
+
+  .reveal :is(h1, h2, h3):not(:has(a))::after {
+    content: "";
+    display: block;
+    width: 2.5em;
+    height: 0.14em;
+    margin-top: 0.2em;
+    background: #ffd43b;
+    border-radius: 0.07em;
+  }
+
+  .reveal section.heading-only :is(h1, h2, h3)::after {
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .reveal section.heading-only {

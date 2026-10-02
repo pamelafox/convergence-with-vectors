@@ -26,9 +26,11 @@ from backend import db
 from embeddings import MODELS, ModelUnavailableError, VocabEmbeddings, embed_texts
 from operators import OPERATOR_NAMES, EmbedFn, apply_operator
 from simulate_convergence import run_simulation
+from vocab import load_vocab
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DB_PATH = ROOT / "data" / "convergence.db"
+STARTING_WORDS_PATH = ROOT / "data" / "vocab_1000.txt"
 
 OperatorName = Literal["centroid", "balanced", "geometric_mean", "textual"]
 assert set(get_args(OperatorName)) == set(OPERATOR_NAMES), "OperatorName must list every operator in operators.OPERATOR_NAMES"
@@ -99,6 +101,7 @@ def create_app(db_path: Path | None = None, embed_fn: EmbedFn | None = None) -> 
         stored = set(db.vocab_models(conn))
         app.state.vocabs = {model: db.load_vocab(conn, model) for model in MODELS if model in stored}
         app.state.store = db.EmbeddingStore(conn, embed_fn or embed_texts)
+        app.state.starting_words = load_vocab(STARTING_WORDS_PATH)
         yield
         conn.close()
 
@@ -124,6 +127,11 @@ def create_app(db_path: Path | None = None, embed_fn: EmbedFn | None = None) -> 
     @app.get("/api/vocab")
     def vocabulary(request: Request, model: str) -> dict[str, list[str]]:
         return {"words": get_vocab(request, model).words}
+
+    @app.get("/api/starting-words")
+    def starting_words(request: Request) -> dict[str, list[str]]:
+        """Hand-picked, familiar words for random starting pairs."""
+        return {"words": request.app.state.starting_words}
 
     @app.get("/api/similarities")
     def similarities(request: Request, model: str, a: Annotated[Word, Query()], b: Annotated[Word, Query()]) -> dict:

@@ -1,4 +1,4 @@
-import { combine, getVocab, listModels, simulateConvergence } from "./api.js";
+import { combine, getStartingWords, getVocab, listModels, simulateConvergence } from "./api.js";
 
 const playButton = document.getElementById("party-play");
 const skipButton = document.getElementById("party-skip");
@@ -48,6 +48,7 @@ const OPERATORS = {
 
 let models = [];
 let vocabulary = [];
+let startingVocabulary = [];
 let currentRun = 0;
 let skipAnimation = false;
 
@@ -103,9 +104,9 @@ function startingWords() {
 }
 
 function randomPair() {
-  const first = Math.floor(Math.random() * vocabulary.length);
-  const offset = 1 + Math.floor(Math.random() * (vocabulary.length - 1));
-  return [vocabulary[first], vocabulary[(first + offset) % vocabulary.length]];
+  const first = Math.floor(Math.random() * startingVocabulary.length);
+  const offset = 1 + Math.floor(Math.random() * (startingVocabulary.length - 1));
+  return [startingVocabulary[first], startingVocabulary[(first + offset) % startingVocabulary.length]];
 }
 
 function setBubbles(wordA, wordB, visible = true) {
@@ -410,9 +411,9 @@ async function init() {
     select.replaceChildren(...models.map((model) => new Option(model.label, model.name)));
   }
   selectB.selectedIndex = 1;
-  // Every model's vocabulary comes from the same word list, so the first one works for picking start words.
-  vocabulary = await getVocab(models[0].name);
-  if (vocabulary.length < 2) throw new Error("The vocabulary is too small to play.");
+  // Every model's vocabulary comes from the same word list, so the first one works for suggestions.
+  [vocabulary, startingVocabulary] = await Promise.all([getVocab(models[0].name), getStartingWords()]);
+  if (startingVocabulary.length < 2) throw new Error("There aren't enough starting words to play.");
   vocabList.replaceChildren(...vocabulary.map((word) => new Option(word)));
 
   updateSettings();

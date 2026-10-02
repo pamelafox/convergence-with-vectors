@@ -25,6 +25,7 @@ from backend import db
 from embeddings import MODELS, embed_texts
 from operators import OPERATOR_NAMES
 from simulate_convergence import run_simulation
+from vocab import load_vocab
 
 
 def play_battle(conn, models: list[str], start_pairs: list[tuple[str, str]], *, operator: str = "centroid", max_rounds: int = 10) -> list[dict]:
@@ -113,13 +114,14 @@ def main() -> None:
     parser.add_argument("--operator", default="centroid", choices=OPERATOR_NAMES, help="Combining operator (default: centroid).")
     parser.add_argument("--max-rounds", type=int, default=10, help="Round limit per game (default: 10).")
     parser.add_argument("--seed", type=int, default=0, help="Seed for picking the starting pairs (default: 0).")
+    parser.add_argument("--starting-words", type=Path, default=Path("data/vocab_1000.txt"), help="Words to pick random starting pairs from.")
     parser.add_argument("--output-json", type=Path, help="Optional path to write every game's path and the summary.")
     args = parser.parse_args()
 
     conn = db.connect(args.db)
     stored = set(db.vocab_models(conn))
     models = [model for model in (args.models or MODELS) if model in stored]
-    words = db.load_vocab(conn, models[0]).words
+    words = load_vocab(args.starting_words)
     rng = random.Random(args.seed)
     start_pairs = [tuple(rng.sample(words, 2)) for _ in range(args.games)]
 

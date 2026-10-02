@@ -29,7 +29,8 @@ stuck, and which make weird choices.
 | `docs/index.html` | reveal.js slides, a single HTML file, published with GitHub Pages |
 | `docs/slides_assets/` | CSS, images, and video for the slides |
 | `backend/` | FastAPI app (`app.py`) and SQLite embedding store (`db.py`); serves `web/` and `/api` |
-| `build_db.py` | Embeds the vocabulary into `data/convergence.db` (generated, gitignored) for the backend |
+| `build_db.py` | Embeds the vocabulary (`data/vocab_5000.txt`) into `data/convergence.db` (generated, gitignored) for the backend |
+| `build_vocab.py` | One-off generator for `data/vocab_5000.txt` (run with `uv run --with better-profanity --with nltk`) |
 | `web/` | Pages for the web app; `web/api.js` is the only module that talks to the backend |
 | `http/` | Sample embeddings requests for the VS Code REST Client extension |
 | `pyproject.toml` | Runtime dependencies, `dev` dependency group, and ruff/black config |

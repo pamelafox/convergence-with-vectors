@@ -38,6 +38,11 @@ export async function getVocab(model) {
   return vocabCache.get(model);
 }
 
+/** Hand-picked, familiar words for random starting pairs. */
+export async function getStartingWords() {
+  return (await getJSON("/api/starting-words")).words;
+}
+
 /**
  * Rank vocabulary words with one operator. Inputs don't need to be in the
  * vocabulary; the backend embeds them on demand.

@@ -1,0 +1,29 @@
+# Words rated concrete but excluded from vocab_5000.txt, since they'd be awkward
+# as a random starting word on a projector. One word per line; used by build_vocab.py.
+# Sexual, bodily, and medical
+bra bikini condom diaper fetus sperm tampon urine vomit butt breast mistress stud underwear
+brothel vibrator stripper genitals genitalia booty bosom cleavage thong lingerie prostate vasectomy
+enema excrement diarrhea booger groin lovemaking nudity nudist pussycat wiener wienie hickey
+knickers spanking booby masseuse masseur cathouse bordello streetwalker coitus masturbator
+pornographer cervix areola placenta urethra circumcision buttock derriere jockstrap brassiere
+negligee nightie pinup urination feces phlegm mucus mucous snot slobber spittle earwax orifice
+suppository colonoscopy proctologist gynecologist mastectomy breastfeeding codpiece undershorts
+underpants pantyhose garter girdle bowel latrine pimple zit cellulite liposuction pregnancy
+chick pinkie horseshit
+# Slurs and stereotypes
+lesbian gypsy midget squaw hobo skinhead clubfoot albino hunchback hermaphrodite geezer hayseed
+flatfoot houseboy swastika bum
+# Drugs
+heroin cocaine coke marijuana morphine meth crack drug drugs booze bong methadone methamphetamine
+amphetamine cannabis codeine nicotine painkiller tranquilizer sedative stimulant moonshine
+cigarette cigar tobacco
+# Weapons and violence
+gun pistol rifle shotgun revolver bullet bomb grenade missile dynamite weapon handgun firearm
+ammunition ammo shrapnel bayonet musket gunfire gunman gunfighter gunfight gunslinger buckshot
+gunshot shooter sharpshooter rifleman marksman bomber hijacker attacker kidnapper assassin
+massacre nuke warhead cyanide anthrax arsenic executioner gallows hangman noose slaughterhouse
+cadaver carcass corpse decapitation behead torturer crucifixion bullfight cockfight sidearm
+triggerman switchblade flamethrower nitroglycerin nitroglycerine detonator landmine minefield
+autopsy morgue hostage
+# Not really nouns, or odd forms
+pant canvass sunglass pricking highschool
