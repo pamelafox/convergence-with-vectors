@@ -178,7 +178,14 @@ np.dot(fire, flame) / (
 # Normalized (length 1), so just:
 np.dot(fire, flame)         # 0.80
                 </code></pre>
-                <img src="slides_assets/cosine_angles.svg" alt="Arrows for fire, flame, and whale: flame is 37 degrees from fire (cosine 0.80), whale is 72 degrees from fire (cosine 0.30)">
+                <div class="figure-stack">
+                    <div class="vectors">
+                        <div class="vec-fire">fire: [-0.030, 0.089, 0.008, …]</div>
+                        <div class="vec-flame">flame: [-0.036, 0.058, -0.021, …]</div>
+                    </div>
+                    <div class="formula">\[\frac{\mathbf{x} \cdot \mathbf{y}}{\lVert\mathbf{x}\rVert \, \lVert\mathbf{y}\rVert}\]</div>
+                    <img src="slides_assets/cosine_angles.svg" alt="Arrows for fire and flame, 37 degrees apart: cosine similarity 0.80">
+                </div>
                 </div>
                 <p class="smaller">🔗 Full code: <a target="_blank" href="https://github.com/pamelafox/convergence-with-vectors/blob/main/cosine.py">cosine.py</a></p>
             </section>
@@ -472,6 +479,7 @@ uv run model_battle.py --games 100 --operator centroid
 
     <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.1.0/dist/reveal.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.1.0/plugin/highlight/highlight.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.1.0/plugin/math/math.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/highlightjs-badge@0.1.9/highlightjs-badge.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/reveal.js-menu@2.1.0/menu.js"></script>
     <script>
@@ -482,7 +490,9 @@ uv run model_battle.py --games 100 --operator centroid
             showNotes: false,
             margin: 0.1,
             preloadIframes: true,
-            plugins: [ RevealHighlight, RevealMenu ],
+            plugins: [ RevealHighlight, RevealMenu, RevealMath ],
+            // SVG output keeps fractions centered regardless of the slides' left-aligned text
+            math: { config: 'TeX-AMS_SVG-full' },
             pdfSeparateFragments: true
         });
 

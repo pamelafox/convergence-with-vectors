@@ -3,7 +3,7 @@
 The first word is compared to each of the others. Optionally draws their angles as an SVG.
 
     uv run cosine.py
-    uv run cosine.py fire flame whale --svg docs/slides_assets/cosine_angles.svg
+    uv run cosine.py fire flame --svg docs/slides_assets/cosine_angles.svg
 """
 
 import argparse
@@ -55,7 +55,7 @@ def angles_svg(base: str, similarities: dict[str, float]) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("words", nargs="*", default=["fire", "flame", "whale"], help="Words to compare to the first word (default: fire flame whale)")
+    parser.add_argument("words", nargs="*", default=["fire", "flame"], help="Words to compare to the first word (default: fire flame)")
     parser.add_argument("--model", default="minilm-l6", choices=list(MODELS), help="Model to use (default: minilm-l6)")
     parser.add_argument("--svg", type=Path, help="Optional path to write a diagram of the angles")
     args = parser.parse_args()

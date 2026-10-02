@@ -86,7 +86,7 @@ To compute cosine similarity with the full formula and with `np.dot` (the same f
 and redraw the angle diagram used in the slides, run:
 
 ```shell
-uv run cosine.py fire flame whale --svg docs/slides_assets/cosine_angles.svg
+uv run cosine.py fire flame --svg docs/slides_assets/cosine_angles.svg
 ```
 
 The [http](http) folder also contains sample REST Client requests for the
@@ -233,6 +233,8 @@ count down, shout their words simultaneously, and celebrate convergence with con
 two random vocabulary words. Choose the operator the players use (with a link to its explanation), and either
 pick the same two models for the whole game or let the backend draw two random models every round.
 The round-by-round history shows which model said each word.
+In **You vs. a model** mode, you play against one model: each round you type your word, then both words
+are revealed together after the countdown. The model picks from the current pair alone, so it never sees your word.
 
 [**web/operators.html**](web/operators.html) is a visual explainer for the operators' math, with the view that fits each one best.
 Centroid and balanced use a rotatable 3D dome (built with three.js, loaded from a CDN) that places every word vector

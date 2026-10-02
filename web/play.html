@@ -65,9 +65,10 @@
           <legend>Players</legend>
           <label class="choice"><input type="radio" name="party-players" value="fixed" checked /> Same two models all game</label>
           <label class="choice"><input type="radio" name="party-players" value="random" /> Random models each round</label>
+          <label class="choice"><input type="radio" name="party-players" value="human" /> You vs. a model</label>
           <div id="party-model-pickers" class="model-pickers">
-            <label>Player A <select id="party-select-a"></select></label>
-            <label>Player B <select id="party-select-b"></select></label>
+            <label id="party-picker-a">Player A <select id="party-select-a"></select></label>
+            <label><span id="party-picker-b-label">Player B</span> <select id="party-select-b"></select></label>
           </div>
         </fieldset>
       </section>
@@ -101,6 +102,14 @@
           </div>
           <div id="party-confetti" class="confetti-layer" aria-hidden="true"></div>
         </div>
+
+        <form id="party-human-form" class="human-turn" hidden>
+          <label for="party-human-word">Your word</label>
+          <input id="party-human-word" list="party-vocab" autocomplete="off" maxlength="60" aria-describedby="party-human-help party-human-error" />
+          <button type="submit" class="party-play-button">Shout it!</button>
+          <p id="party-human-help" class="setting-help">The model only knows its ~1000-word vocabulary, so you can only converge on one of those words.</p>
+          <p id="party-human-error" class="human-error" role="alert"></p>
+        </form>
 
         <p id="party-announcer" class="party-announcer" aria-live="polite">
           The models are taking their places in the circle.

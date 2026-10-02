@@ -1,4 +1,4 @@
-import { getVocab, listModels, simulateConvergence } from "./api.js";
+import { combine, getVocab, listModels, simulateConvergence } from "./api.js";
 
 const playButton = document.getElementById("party-play");
 const skipButton = document.getElementById("party-skip");
@@ -26,7 +26,14 @@ const playerChoices = document.querySelectorAll('input[name="party-players"]');
 const wordInputA = document.getElementById("party-word-a");
 const wordInputB = document.getElementById("party-word-b");
 const vocabList = document.getElementById("party-vocab");
+const pickerA = document.getElementById("party-picker-a");
+const pickerBLabel = document.getElementById("party-picker-b-label");
+const humanForm = document.getElementById("party-human-form");
+const humanWordInput = document.getElementById("party-human-word");
+const humanError = document.getElementById("party-human-error");
 const settingsControls = [operatorSelect, selectA, selectB, ...playerChoices];
+
+const HUMAN = "you";
 
 const COUNTDOWN_DELAY = 560;
 const SHOUT_DELAY = 850;
@@ -45,11 +52,16 @@ let currentRun = 0;
 let skipAnimation = false;
 
 function labelFor(name) {
+  if (name === HUMAN) return "You";
   return models.find((model) => model.name === name)?.label ?? name;
 }
 
+function playersMode() {
+  return document.querySelector('input[name="party-players"]:checked').value;
+}
+
 function randomPlayers() {
-  return document.querySelector('input[name="party-players"]:checked').value === "random";
+  return playersMode() === "random";
 }
 
 function setSeatLabels(names) {
@@ -66,7 +78,15 @@ function updateSettings() {
   operatorHelp.replaceChildren(`${OPERATORS[operator].help} `, link);
 
   const random = randomPlayers();
+  const human = playersMode() === "human";
   modelPickers.hidden = random;
+  pickerA.hidden = human;
+  pickerBLabel.textContent = human ? "Your opponent" : "Player B";
+  if (human) {
+    setSeatLabels({ A: HUMAN, B: selectB.value });
+    explainer.textContent = `You and ${labelFor(selectB.value)} each pick a word between the current pair. ${labelFor(selectB.value)} uses the ${operatorName.toLowerCase()} operator.`;
+    return;
+  }
   setSeatLabels(random ? null : { A: selectA.value, B: selectB.value });
   explainer.textContent = random
     ? `Every round, two different models are drawn at random from ${models.length} and both use the ${operatorName.toLowerCase()} operator.`
@@ -208,22 +228,34 @@ async function animateGame(result, startWords, runId) {
   }
 
   if (runId !== currentRun) return;
+  const last = result.path[result.path.length - 1];
+  finishGame({
+    converged: result.outcome === "converged",
+    word: last.pairOut[0],
+    rounds: last.round,
+    title: result.outcome === "loop" ? "Thought loop" : "Game over",
+    pill: result.outcome === "loop" ? "Loop detected" : "No convergence",
+    message: describeEnding(result),
+  });
+}
+
+function finishGame({ converged, word, rounds, title = "Game over", pill = "No convergence", message }) {
   setPlayersState("idle");
-  if (result.outcome === "converged") {
-    const last = result.path[result.path.length - 1];
+  humanForm.hidden = true;
+  if (converged) {
     countdown.textContent = "🎉";
     roundLabel.textContent = "Converged!";
-    prompt.textContent = `One shared thought: ${last.pairOut[0]}`;
-    announcer.textContent = `Converged on “${last.pairOut[0]}” in ${last.round} round${last.round === 1 ? "" : "s"}!`;
-    outcome.textContent = `${last.round} round${last.round === 1 ? "" : "s"} to converge`;
+    prompt.textContent = `One shared thought: ${word}`;
+    announcer.textContent = `Converged on “${word}” in ${rounds} round${rounds === 1 ? "" : "s"}!`;
+    outcome.textContent = `${rounds} round${rounds === 1 ? "" : "s"} to converge`;
     outcome.className = "outcome-pill converged";
     celebrate();
   } else {
     countdown.textContent = "↻";
-    roundLabel.textContent = result.outcome === "loop" ? "Thought loop" : "Game over";
+    roundLabel.textContent = title;
     prompt.textContent = "Not every pair finds its way together.";
-    announcer.textContent = describeEnding(result);
-    outcome.textContent = result.outcome === "loop" ? "Loop detected" : "No convergence";
+    announcer.textContent = message;
+    outcome.textContent = pill;
     outcome.className = "outcome-pill not-converged";
   }
 
@@ -234,6 +266,89 @@ async function animateGame(result, startWords, runId) {
   loadingStatus.textContent = "Ready for another game whenever you are.";
 }
 
+function waitForHumanWord(pair) {
+  return new Promise((resolve) => {
+    humanForm.hidden = false;
+    humanWordInput.value = "";
+    humanError.textContent = "";
+    humanWordInput.focus();
+    humanForm.onsubmit = (event) => {
+      event.preventDefault();
+      const word = humanWordInput.value.trim().toLowerCase();
+      if (!word) {
+        humanError.textContent = "Type a word first.";
+        return;
+      }
+      if (pair.includes(word)) {
+        humanError.textContent = "Pick a new word, not one of the current pair.";
+        return;
+      }
+      humanForm.hidden = true;
+      humanForm.onsubmit = null;
+      resolve(word);
+    };
+  });
+}
+
+async function playHumanGame(startWords, runId) {
+  const opponent = selectB.value;
+  const operator = operatorSelect.value;
+  const players = { A: HUMAN, B: opponent };
+  setSeatLabels(players);
+
+  if (!(await showCountdown("Opening shout", null, runId))) return;
+  setPlayersState("shouting");
+  setBubbles(...startWords);
+  prompt.textContent = "The game begins!";
+  announcer.textContent = `The opening words are “${startWords[0]}” and “${startWords[1]}”!`;
+  addHistoryRow("Opening", startWords);
+  await delay(SHOUT_DELAY, runId);
+
+  let pair = startWords;
+  for (let round = 1; round <= MAX_ROUNDS; round++) {
+    // The model only sees the current pair, so fetching now can't peek at the human's word
+    const modelPick = combine(operator, opponent, ...pair, { topK: 1 }).then((candidates) => candidates[0]?.candidate);
+    modelPick.catch(() => {});
+
+    roundLabel.textContent = `Round ${round}`;
+    countdown.textContent = "?";
+    prompt.textContent = `What's between ${pair[0]} + ${pair[1]}?`;
+    announcer.textContent = `Your turn: what word is between “${pair[0]}” and “${pair[1]}”?`;
+    setBubbles("", "", false);
+    setPlayersState("thinking");
+    const humanWord = await waitForHumanWord(pair);
+    if (runId !== currentRun) return;
+
+    if (!(await showCountdown(`Round ${round}`, pair, runId))) return;
+    let modelWord;
+    try {
+      modelWord = await modelPick;
+    } catch (error) {
+      finishGame({ converged: false, message: `${labelFor(opponent)} couldn't answer: ${error.message}` });
+      return;
+    }
+    if (!modelWord) {
+      finishGame({ converged: false, message: `${labelFor(opponent)} ran out of eligible words.` });
+      return;
+    }
+
+    setPlayersState("shouting");
+    setBubbles(humanWord, modelWord);
+    const converged = humanWord === modelWord;
+    prompt.textContent = converged ? "You found the same word!" : "New pair unlocked";
+    announcer.textContent = converged ? `You and ${labelFor(opponent)} both shouted “${humanWord}!”` : `You say “${humanWord}!” ${labelFor(opponent)} says “${modelWord}!”`;
+    addHistoryRow(`Round ${round}`, [humanWord, modelWord], converged, players);
+    if (converged) {
+      await delay(SHOUT_DELAY, runId);
+      finishGame({ converged: true, word: humanWord, rounds: round });
+      return;
+    }
+    pair = [humanWord, modelWord];
+    await delay(SHOUT_DELAY, runId);
+  }
+  finishGame({ converged: false, message: `${MAX_ROUNDS} rounds, no match yet. Time for another game!` });
+}
+
 async function startGame() {
   const startWords = startingWords();
   if (startWords[0] === startWords[1]) {
@@ -241,17 +356,22 @@ async function startGame() {
     return;
   }
   const runId = ++currentRun;
+  const human = playersMode() === "human";
   skipAnimation = false;
   playButton.disabled = true;
   setSettingsDisabled(true);
-  skipButton.hidden = false;
+  skipButton.hidden = human;
   skipButton.disabled = false;
   skipButton.textContent = "Skip to the result";
-  loadingStatus.textContent = "The models are thinking in vectors. The shouts are revealed live.";
+  loadingStatus.textContent = human ? "Type your word each round, then the model's word is revealed with yours." : "The models are thinking in vectors. The shouts are revealed live.";
   outcome.textContent = "Game in progress";
   outcome.className = "outcome-pill";
   history.innerHTML = '<li class="empty-history">The opening words are almost ready…</li>';
   confettiLayer.replaceChildren();
+  if (human) {
+    await playHumanGame(startWords, runId);
+    return;
+  }
   const random = randomPlayers();
   let result;
   try {

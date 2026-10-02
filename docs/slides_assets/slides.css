@@ -82,8 +82,8 @@
 
   .code-with-figure {
     display: flex;
-    align-items: center;
-    gap: 24px;
+    align-items: flex-start;
+    gap: 16px;
   }
 
   .reveal .code-with-figure pre {
@@ -95,6 +95,60 @@
   .code-with-figure img {
     flex: 1 1 0;
     min-width: 0;
+  }
+
+  .code-with-figure .figure-stack {
+    flex: 1 1 0;
+    min-width: 0;
+    text-align: center;
+    /* Rows match the code's 37px lines: encode (3), blank, formula (4), then blank + np.dot (3) */
+    display: grid;
+    grid-template-rows: 111px 37px 148px 112px;
+    padding-top: 8px;
+  }
+
+  .code-with-figure .figure-stack img {
+    height: 112px;
+    width: auto;
+    justify-self: center;
+  }
+
+  .code-with-figure .figure-stack .vectors {
+    grid-row: 1;
+    align-self: center;
+  }
+
+  .code-with-figure .figure-stack .formula {
+    grid-row: 3;
+    align-self: center;
+  }
+
+  .code-with-figure .figure-stack img {
+    grid-row: 4;
+  }
+
+  .code-with-figure .formula .MathJax_SVG_Display {
+    margin: 0 !important;
+  }
+
+  .code-with-figure .formula {
+    font-size: 1.5em;
+  }
+
+  .code-with-figure .vectors {
+    font-family: "Roboto Mono", monospace;
+    font-size: 0.55em;
+    line-height: 1.8;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .code-with-figure .vec-fire {
+    color: #4b5563;
+  }
+
+  .code-with-figure .vec-flame {
+    color: #c2410c;
   }
 
   .about-layout {

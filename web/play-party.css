@@ -160,7 +160,60 @@
   margin-top: 0.5rem;
 }
 
-.model-pickers[hidden] {
+.model-pickers[hidden],
+.model-pickers label[hidden] {
+  display: none;
+}
+
+.human-turn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  max-width: 620px;
+  margin: 1.2rem auto 0;
+  padding: 1rem 1.2rem;
+  border: 2px solid var(--party-purple);
+  border-radius: 1rem;
+  background: white;
+}
+
+.human-turn[hidden] {
+  display: none;
+}
+
+.human-turn label {
+  color: var(--party-ink);
+  font-weight: 800;
+}
+
+.human-turn input {
+  flex: 1 1 12rem;
+  min-width: 0;
+  padding: 0.5rem 0.7rem;
+  font-size: 1.1rem;
+}
+
+.human-turn button {
+  border: 0;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.human-turn .setting-help,
+.human-turn .human-error {
+  flex-basis: 100%;
+  margin: 0;
+  text-align: center;
+}
+
+.human-error {
+  color: #b42318;
+  font-weight: 700;
+}
+
+.human-error:empty {
   display: none;
 }
 
