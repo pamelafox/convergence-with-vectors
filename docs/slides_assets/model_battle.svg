@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-360 -262 720 524" font-family="sans-serif" font-size="26">
+<g stroke="#9ca3af" stroke-width="2.5" stroke-linecap="round">
+<line x1="0" y1="-170" x2="147.2" y2="-85"/>
+<line x1="0" y1="-170" x2="147.2" y2="85"/>
+<line x1="0" y1="-170" x2="0" y2="170"/>
+<line x1="0" y1="-170" x2="-147.2" y2="85"/>
+<line x1="0" y1="-170" x2="-147.2" y2="-85"/>
+<line x1="147.2" y1="-85" x2="147.2" y2="85"/>
+<line x1="147.2" y1="-85" x2="0" y2="170"/>
+<line x1="147.2" y1="-85" x2="-147.2" y2="85"/>
+<line x1="147.2" y1="-85" x2="-147.2" y2="-85"/>
+<line x1="147.2" y1="85" x2="0" y2="170"/>
+<line x1="147.2" y1="85" x2="-147.2" y2="85"/>
+<line x1="147.2" y1="85" x2="-147.2" y2="-85"/>
+<line x1="0" y1="170" x2="-147.2" y2="85"/>
+<line x1="0" y1="170" x2="-147.2" y2="-85"/>
+<line x1="-147.2" y1="85" x2="-147.2" y2="-85"/>
+</g>
+<g stroke="#ffffff" stroke-width="4">
+<circle cx="0" cy="-170" r="30" fill="#3776ab"/>
+<circle cx="147.2" cy="-85" r="30" fill="#5b8fc7"/>
+<circle cx="147.2" cy="85" r="30" fill="#c2410c"/>
+<circle cx="0" cy="170" r="30" fill="#0f766e"/>
+<circle cx="-147.2" cy="85" r="30" fill="#7c3aed"/>
+<circle cx="-147.2" cy="-85" r="30" fill="#b8860b"/>
+</g>
+<g fill="#1e4a72" font-weight="bold">
+<text x="0" y="-216" text-anchor="middle">MiniLM L6</text>
+<text x="190" y="-76" text-anchor="start">MiniLM L12</text>
+<text x="190" y="94" text-anchor="start">BGE Small</text>
+<text x="0" y="234" text-anchor="middle">Harrier 270M</text>
+<text x="-190" y="94" text-anchor="end">mxbai Large</text>
+<text x="-190" y="-76" text-anchor="end">Qwen3 0.6B</text>
+</g>
+</svg>

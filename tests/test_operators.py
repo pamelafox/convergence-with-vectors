@@ -14,24 +14,24 @@ import operators as ops
 from embeddings import VocabEmbeddings
 
 
-def test_balanced_scores_is_elementwise_min():
+def test_maximin_scores_is_elementwise_min():
     sim_a = np.array([0.9, 0.1, 0.5])
     sim_b = np.array([0.2, 0.8, 0.5])
-    np.testing.assert_allclose(ops.balanced_scores(sim_a, sim_b), [0.2, 0.1, 0.5])
+    np.testing.assert_allclose(ops.maximin_scores(sim_a, sim_b), [0.2, 0.1, 0.5])
 
 
-def test_geometric_mean_scores_matches_sqrt_product_for_positive_inputs():
-    sim_a = np.array([0.64, 0.25])
-    sim_b = np.array([0.25, 0.64])
-    np.testing.assert_allclose(ops.geometric_mean_scores(sim_a, sim_b), [0.4, 0.4])
+def test_product_scores_multiplies_positive_inputs():
+    sim_a = np.array([0.8, 0.5])
+    sim_b = np.array([0.5, 0.4])
+    np.testing.assert_allclose(ops.product_scores(sim_a, sim_b), [0.4, 0.2])
 
 
-def test_geometric_mean_scores_clamps_negative_similarities_to_zero():
+def test_product_scores_clamps_negative_similarities_to_zero():
     # A candidate dissimilar to 'a' (negative cosine) should score 0, not a
     # spurious positive value from multiplying two negatives together.
     sim_a = np.array([-0.5, -0.5, 0.5])
     sim_b = np.array([0.8, -0.5, -0.5])
-    scores = ops.geometric_mean_scores(sim_a, sim_b)
+    scores = ops.product_scores(sim_a, sim_b)
     np.testing.assert_allclose(scores, [0.0, 0.0, 0.0])
 
 

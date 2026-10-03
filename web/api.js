@@ -5,7 +5,7 @@
  * results and reshape them into camelCase objects for the pages.
  */
 
-export const OPERATOR_NAMES = ["centroid", "balanced", "geometric_mean", "textual"];
+export const OPERATOR_NAMES = ["centroid", "maximin", "product", "textual"];
 
 async function getJSON(url, options) {
   const response = await fetch(url, options);

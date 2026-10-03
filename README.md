@@ -86,7 +86,13 @@ To compute cosine similarity with the full formula and with `np.dot` (the same f
 and redraw the angle diagram used in the slides, run:
 
 ```shell
-uv run cosine.py fire flame --svg docs/slides_assets/cosine_angles.svg
+uv run cosine.py fire whale --svg docs/slides_assets/cosine_angles.svg
+```
+
+To rank every vocabulary word by its similarity to one word, and redraw the histogram used in the slides, run:
+
+```shell
+uv run similarity.py fire --svg docs/slides_assets/fire_similarity_histogram.svg
 ```
 
 The [http](http) folder also contains sample REST Client requests for the
@@ -122,8 +128,8 @@ All embeddings are L2-normalized, so cosine similarity is a plain dot product.
 | Operator | Definition |
 | ---------- | ------------ |
 | `centroid` | Nearest vocabulary word to `normalize(embed(a) + embed(b))`. |
-| `balanced` | For each candidate `w`: `min(cos(w, a), cos(w, b))` — rewards being close to *both* inputs. |
-| `geometric_mean` | Geometric mean of the two cosine similarities. **Negative similarities are clamped to 0 before multiplying** (a geometric mean is undefined for negatives, and multiplying two negatives would otherwise produce a misleading positive score), so a candidate dissimilar to either input scores exactly 0. |
+| `maximin` | For each candidate `w`: `min(cos(w, a), cos(w, b))`, maximized over candidates — rewards being close to *both* inputs. |
+| `product` | Product of the two cosine similarities. **Negative similarities are clamped to 0 before multiplying** (multiplying two negatives would otherwise produce a misleading positive score), so a candidate dissimilar to either input scores exactly 0. |
 | `textual` | Embed a phrase containing both words (e.g. `"{a} and {b}"`) and return the nearest vocabulary word to *that* embedding. The phrase template is configurable via `--template` (repeatable), so different templates can be compared side by side. |
 
 ### Commands
@@ -242,10 +248,10 @@ In **You vs. a model** mode, you play against one model: each round you type you
 are revealed together after the countdown. The model picks from the current pair alone, so it never sees your word.
 
 [**web/operators.html**](web/operators.html) is a visual explainer for the operators' math, with the view that fits each one best.
-Centroid and balanced use a rotatable 3D dome (built with three.js, loaded from a CDN) that places every word vector
-relative to the plane of the two input words: centroid shows each word's angle to the midpoint vector, and balanced grows
-circles around both input words. Geometric mean shows each word's two similarities as a rectangle next to the square with
-the same area. A side-by-side table compares each operator's top 5, including `textual`. Links at the top jump to each operator.
+Centroid and maximin use a rotatable 3D dome (built with three.js, loaded from a CDN) that places every word vector
+relative to the plane of the two input words: centroid shows each word's angle to the midpoint vector, and maximin grows
+circles around both input words. Product plots every word by its two similarities, with each top word's rectangle
+whose area is the score. A side-by-side table compares each operator's top 5, including `textual`. Links at the top jump to each operator.
 
 ## Deploying to Azure Container Apps
 
@@ -289,6 +295,7 @@ azd provision
 | [docs/index.html](docs/index.html) | The reveal.js slides for the talk, published with GitHub Pages |
 | [embed.py](embed.py) | Embeds words with one model and compares every pair with cosine similarity |
 | [cosine.py](cosine.py) | Computes cosine similarity with the full formula and with `np.dot`, and draws the angles as an SVG |
+| [similarity.py](similarity.py) | Ranks every vocabulary word by similarity to one word, and draws a histogram as an SVG |
 | [vocab.py](vocab.py) | Vocabulary file parsing for the word-combination experiments |
 | [embeddings.py](embeddings.py) | Model registry and cached vocabulary embeddings |
 | [operators.py](operators.py) | The four word-combination operators and their scoring math |
@@ -308,3 +315,8 @@ azd provision
 | [docs/slides_assets/](docs/slides_assets) | CSS, images, and video used by the slides |
 | [http/](http) | Sample embeddings requests for the VS Code REST Client extension |
 | [AGENTS.md](AGENTS.md) | Context and conventions for AI coding agents |
+
+## Resources
+
+* [Vectors comparison](https://pamelafox.github.io/vectors-comparison/): an interactive tool for comparing vector similarities across embedding models
+* [A visual exploration of vector embeddings](http://blog.pamelafox.org/2025/05/a-visual-exploration-of-vector.html): blog post by Pamela Fox

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-250 -345 600 500" font-family="sans-serif" font-size="32">
+<defs><marker id="tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs>
+<g stroke="#9ca3af" stroke-width="2" fill="none">
+<line x1="0" y1="0" x2="-215.6" y2="138.6" marker-end="url(#tip)"/>
+<line x1="0" y1="0" x2="277.2" y2="77" marker-end="url(#tip)"/>
+<line x1="0" y1="0" x2="0" y2="-308" marker-end="url(#tip)"/>
+</g>
+<g stroke-width="2" stroke-dasharray="6 5" fill="none">
+<path d="M80.6,-152.9 L80.6,71.1 L0,0" stroke="#4d7c0f" opacity="0.5"/>
+<path d="M-88.8,-28.7 L-88.8,119.7 L0,0" stroke="#ea580c" opacity="0.5"/>
+</g>
+<line x1="0" y1="0" x2="80.6" y2="-152.9" stroke="#4d7c0f" stroke-width="5" marker-end="url(#tip)"/>
+<line x1="0" y1="0" x2="-88.8" y2="-28.7" stroke="#ea580c" stroke-width="5" marker-end="url(#tip)"/>
+<text x="94" y="-160" fill="#4d7c0f" font-weight="bold">apples</text>
+<text x="-100" y="-38" fill="#ea580c" font-weight="bold" text-anchor="end">oranges</text>
+</svg>

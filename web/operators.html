@@ -190,6 +190,9 @@
         padding: 2px 6px;
         border-radius: 3px;
       }
+      #product-chart {
+        max-width: 560px;
+      }
     </style>
   </head>
   <body>
@@ -197,8 +200,8 @@
     <h1>How the combination operators work</h1>
     <nav class="jump-nav" aria-label="Jump to an operator">
       <a href="#centroid">Centroid</a>
-      <a href="#balanced">Balanced</a>
-      <a href="#geometric-mean">Geometric mean</a>
+      <a href="#maximin">Maximin</a>
+      <a href="#product">Product</a>
       <a href="#textual">Textual</a>
       <a href="#compare">Side by side</a>
     </nav>
@@ -266,16 +269,16 @@
       That's why a word that leans heavily toward one input, like a near-synonym, can still win.
     </p>
 
-    <h2 id="balanced">2. Balanced: inside both circles first</h2>
+    <h2 id="maximin">2. Maximin: inside both circles first</h2>
     <p>
-      Balanced only gives a word a score of <var>L</var> if it is at least that similar to <var>a</var> <em>and</em> to <var>b</var>.
+      Maximin only gives a word a score of <var>L</var> if it is at least that similar to <var>a</var> <em>and</em> to <var>b</var>.
       On the same dome, "at least that similar to <var>a</var>" means "inside a circle around <var>a</var>".
       Drag the <strong>Circles</strong> slider to grow a circle around <var>a</var> and one around <var>b</var> at the same rate.
       Only the words inside both circles are highlighted. <strong>The first word inside both circles wins</strong>, and the slider starts at exactly that size.
     </p>
     <div class="dome-controls">
-      <label><input type="checkbox" id="balanced-show-angles" checked />Angles to a and b</label>
-      <label><input type="checkbox" id="balanced-show-drops" checked />Dashed lines (hidden part)</label>
+      <label><input type="checkbox" id="maximin-show-angles" checked />Angles to a and b</label>
+      <label><input type="checkbox" id="maximin-show-drops" checked />Dashed lines (hidden part)</label>
     </div>
     <div class="circle-controls">
       <label for="circle-angle">Circles: within <output id="circle-angle-out" for="circle-angle"></output>° of each input</label>
@@ -288,31 +291,41 @@
         <span>0°</span><span>10°</span><span>20°</span><span>30°</span><span>40°</span><span>50°</span><span>60°</span><span>70°</span><span>80°</span><span>90°</span>
       </div>
     </div>
-    <div id="balanced-dome" class="dome" role="img" aria-label="Rotatable 3D dome for the balanced operator"></div>
-    <p id="balanced-dome-status" class="note">Loading three.js…</p>
+    <div id="maximin-dome" class="dome" role="img" aria-label="Rotatable 3D dome for the maximin operator"></div>
+    <p id="maximin-dome-status" class="note">Loading three.js…</p>
     <p>A dot close to only one input never gets inside the other circle, however close it is to that one input.</p>
     <p>
       The arcs show each highlighted word's angle to <var>a</var> and to <var>b</var>. The larger angle (thick arc) is the word's weaker side, and it sets the score.
       The smaller one (thin arc) only has to stay below it, and how far below doesn't matter.
     </p>
 
-    <h2 id="geometric-mean">3. Geometric mean: the biggest rectangle</h2>
+    <h2 id="product">3. Product: the biggest rectangle</h2>
     <p>
-      Geometric mean multiplies the two similarities and takes the square root: √(s<sub>a</sub> · s<sub>b</sub>).
-      Picture a rectangle that is s<sub>a</sub> wide and s<sub>b</sub> tall. The geometric mean is the side of the <strong>square with the same area</strong>.
+      Product multiplies the two similarities: s<sub>a</sub> × s<sub>b</sub>.
+      Picture a rectangle that is s<sub>a</sub> wide and s<sub>b</sub> tall. The product is its <strong>area</strong>, so the biggest rectangle wins.
     </p>
+    <div class="dome-controls">
+      <label for="product-top-n">Top <output id="product-top-n-out" for="product-top-n">3</output> words</label>
+      <input type="range" id="product-top-n" min="1" max="10" value="3" />
+    </div>
+    <figure>
+      <svg id="product-chart" viewBox="0 0 330 300" role="img" aria-labelledby="product-desc"></svg>
+      <figcaption id="product-desc" class="note">
+        Every word is a dot at (s<sub>a</sub>, s<sub>b</sub>), and each top word's rectangle runs from the origin to its dot, so its area is s<sub>a</sub> × s<sub>b</sub>.
+        The dashed curve joins every point with the same area as the winner, so no word lies beyond it.
+      </figcaption>
+    </figure>
     <figure>
       <svg id="rectangles" viewBox="0 0 680 230" role="img" aria-labelledby="rectangles-desc"></svg>
       <figcaption id="rectangles-desc" class="note">
-        Each rectangle is a word's similarity to a (width) by its similarity to b (height), next to the dashed square with the same area.
-        The biggest area wins. The square's side is the square root of the area, which is the geometric mean score. Negative similarities count as 0.
+        Each rectangle is a word's similarity to a (width) by its similarity to b (height). The biggest area wins. Negative similarities count as 0.
         The bottom row shows the words closest to each input on their own: one long side, but a small area.
       </figcaption>
     </figure>
     <p>
       A long, thin rectangle (close to one input, far from the other) has a small area even with one long side.
       So a word can lean toward one input, but losing half its similarity on one side takes doubling the other side to make up for it.
-      That's in between centroid, where any loss can be made up by an equal gain, and balanced, where nothing makes up for the weaker side.
+      That's in between centroid, where any loss can be made up by an equal gain, and maximin, where nothing makes up for the weaker side.
     </p>
 
     <h2 id="compare">4. All operators side by side</h2>
@@ -336,7 +349,7 @@
       import { combine, getVocab, listModels, similarities } from "./api.js";
 
       const SVG_NS = "http://www.w3.org/2000/svg";
-      const OPS = ["centroid", "balanced", "geometric_mean", "textual"];
+      const OPS = ["centroid", "maximin", "product", "textual"];
       // Distinct from the blue, purple and green used for a, b and ĉ
       const WORD_COLORS = ["#d1495b", "#e08a00", "#8c564b", "#e377c2", "#17becf", "#bcbd22", "#7b2d26", "#c9a227", "#5f6b7a", "#ff6f3c"];
 
@@ -354,6 +367,9 @@
         protractor: document.getElementById("protractor"),
         protractorFigure: document.getElementById("protractor-figure"),
         rectangles: document.getElementById("rectangles"),
+        product: document.getElementById("product-chart"),
+        productTopN: document.getElementById("product-top-n"),
+        productTopNOut: document.getElementById("product-top-n-out"),
       };
 
       // Each dome section has its own container and controls
@@ -366,11 +382,11 @@
           topN: document.getElementById("centroid-top-n"),
           topNOut: document.getElementById("centroid-top-n-out"),
         },
-        balanced: {
-          dome: document.getElementById("balanced-dome"),
-          status: document.getElementById("balanced-dome-status"),
-          showAngles: document.getElementById("balanced-show-angles"),
-          showDrops: document.getElementById("balanced-show-drops"),
+        maximin: {
+          dome: document.getElementById("maximin-dome"),
+          status: document.getElementById("maximin-dome-status"),
+          showAngles: document.getElementById("maximin-show-angles"),
+          showDrops: document.getElementById("maximin-show-drops"),
         },
       };
 
@@ -391,10 +407,10 @@
         switch (op) {
           case "centroid":
             return (sa, sb) => (sa + sb) / norm;
-          case "balanced":
+          case "maximin":
             return (sa, sb) => Math.min(sa, sb);
-          case "geometric_mean":
-            return (sa, sb) => Math.sqrt(Math.max(sa, 0) * Math.max(sb, 0));
+          case "product":
+            return (sa, sb) => Math.max(sa, 0) * Math.max(sb, 0);
         }
       }
 
@@ -412,10 +428,10 @@
           return null;
         }
         els.error.textContent = "";
-        const [sims, geoAll, ...tops] = await Promise.all([
+        const [sims, productAll, ...tops] = await Promise.all([
           similarities(model, wordA, wordB),
-          // Full geometric-mean ranking, so any word's rank can be shown next to its rectangle
-          combine("geometric_mean", model, wordA, wordB, { topK: 10000 }),
+          // Full product ranking, so any word's rank can be shown next to its rectangle
+          combine("product", model, wordA, wordB, { topK: 10000 }),
           ...OPS.map((op) => combine(op, model, wordA, wordB, { topK: 10 })),
         ]);
         const topWide = Object.fromEntries(OPS.map((op, i) => [op, tops[i]]));
@@ -436,7 +452,7 @@
           simB,
           top,
           topWide,
-          geoAll,
+          productAll,
           half,
           sh: Math.max(Math.sin(half), 1e-6),
           ch: Math.max(Math.cos(half), 1e-6),
@@ -535,7 +551,54 @@
       }
 
       function closestTo(key) {
-        return state.geoAll.reduce((best, c) => (c[key] > best[key] ? c : best));
+        return state.productAll.reduce((best, c) => (c[key] > best[key] ? c : best));
+      }
+
+      /** Every word as a dot at (s_a, s_b), with each top word's s_a × s_b rectangle and the winner's equal-product curve. */
+      function renderProduct() {
+        const root = els.product;
+        root.replaceChildren();
+        const topN = state.productAll.slice(0, parseInt(els.productTopN.value, 10));
+        els.productTopNOut.textContent = topN.length;
+        const ox = 52;
+        const oy = 262;
+        const S = 240;
+        const x = (s) => ox + Math.max(s, 0) * S;
+        const y = (s) => oy - Math.max(s, 0) * S;
+        const { data, simA, simB, idxA, idxB, wordA, wordB } = state;
+
+        const tick = { "font-size": 13, fill: "#666" };
+        svg("line", { x1: ox, y1: oy, x2: ox + S, y2: oy, stroke: "#999" }, root);
+        svg("line", { x1: ox, y1: oy, x2: ox, y2: oy - S, stroke: "#999" }, root);
+        svg("text", { ...tick, x: ox - 6, y: oy + 14, "text-anchor": "end" }, root, "0");
+        svg("text", { ...tick, x: ox + S, y: oy + 16, "text-anchor": "middle" }, root, "1");
+        svg("text", { ...tick, x: ox - 6, y: oy - S + 5, "text-anchor": "end" }, root, "1");
+        svg("text", { x: ox + S / 2, y: oy + 30, "text-anchor": "middle", "font-size": 14, fill: "#1766a0" }, root, `s_a: "${wordA}" \u2192`);
+        svg("text", { x: ox - 22, y: oy - S / 2, "text-anchor": "middle", "font-size": 14, fill: "#9b467d", transform: `rotate(-90 ${ox - 22} ${oy - S / 2})` }, root, `s_b: "${wordB}" \u2192`);
+
+        for (let i = 0; i < data.words.length; i++) {
+          if (i === idxA || i === idxB) continue;
+          svg("circle", { cx: x(simA[i]), cy: y(simB[i]), r: 1.4, fill: "#444", "fill-opacity": 0.25 }, root);
+        }
+        if (!topN.length) return;
+
+        // Every point on this curve has the same product as the winner, so nothing lies beyond it
+        const best = Math.max(topN[0].simA, 0) * Math.max(topN[0].simB, 0);
+        const curve = [];
+        for (let k = 0; k <= 40; k++) {
+          const sa = best + ((1 - best) * k) / 40;
+          curve.push(`${k ? "L" : "M"}${x(sa).toFixed(1)},${y(best / sa).toFixed(1)}`);
+        }
+        svg("path", { d: curve.join(" "), fill: "none", stroke: "#222", "stroke-width": 1.2, "stroke-dasharray": "4 3" }, root);
+        svg("text", { x: x(best) + 8, y: y(0.95), "font-size": 13, fill: "#222" }, root, `s_a \u00d7 s_b = ${fmt(best)}`);
+
+        for (const c of [...topN].reverse()) {
+          const color = WORD_COLORS[(c.rank - 1) % WORD_COLORS.length];
+          const isWinner = c.rank === 1;
+          svg("rect", { x: ox, y: y(c.simB), width: x(c.simA) - ox, height: oy - y(c.simB), fill: color, "fill-opacity": isWinner ? 0.2 : 0.06, stroke: color, "stroke-width": isWinner ? 2.5 : 1.2 }, root);
+          svg("circle", { cx: x(c.simA), cy: y(c.simB), r: isWinner ? 4.5 : 3, fill: color }, root);
+          svg("text", { x: x(c.simA) + 6, y: y(c.simB) - 5, "font-size": isWinner ? 15 : 12, "font-weight": isWinner ? 700 : 500, fill: color }, root, `${c.rank}. ${c.candidate}`);
+        }
       }
 
       function renderRectangles(rows) {
@@ -553,7 +616,6 @@
           row.items.forEach((c, i) => {
             const sa = Math.max(c.simA, 0);
             const sb = Math.max(c.simB, 0);
-            const side = Math.sqrt(sa * sb);
             const ox = i * panelW + 30;
             const oy = rowTop + titleH + 160;
             // Axes, scaled so similarity 1 = S px
@@ -566,11 +628,9 @@
             svg("text", { x: ox + S / 2, y: oy + 13, "text-anchor": "middle", "font-size": 11, fill: "#1766a0" }, root, `"${state.wordA}" \u2192`);
             svg("text", { x: ox - 14, y: oy - S / 2, "text-anchor": "middle", "font-size": 11, fill: "#9b467d", transform: `rotate(-90 ${ox - 14} ${oy - S / 2})` }, root, `"${state.wordB}" \u2192`);
             svg("rect", { x: ox, y: oy - sb * S, width: sa * S, height: sb * S, fill: c.color, "fill-opacity": 0.3, stroke: c.color, "stroke-width": 2 }, root);
-            svg("rect", { x: ox, y: oy - side * S, width: side * S, height: side * S, fill: "none", stroke: "#222", "stroke-width": 1.5, "stroke-dasharray": "4 3" }, root);
             svg("text", { x: ox, y: oy - S - 8, "font-size": 14, "font-weight": c.rank === 1 ? 700 : 500, fill: c.color }, root, c.label);
-            svg("text", { x: ox, y: oy + 34, "font-size": 12, fill: "#333" }, root, `area = ${fmt(sa)} × ${fmt(sb)} = ${fmt(sa * sb)}`);
-            svg("text", { x: ox, y: oy + 52, "font-size": 12, "font-weight": 700, fill: "#222" }, root, `square side = √${fmt(sa * sb)} = ${fmt3(side)}`);
-            svg("text", { x: ox, y: oy + 70, "font-size": 12, fill: "#555" }, root, `rank #${c.rank} of ${state.geoAll.length}`);
+            svg("text", { x: ox, y: oy + 34, "font-size": 12, "font-weight": 700, fill: "#222" }, root, `area = ${fmt(sa)} × ${fmt(sb)} = ${fmt(sa * sb)}`);
+            svg("text", { x: ox, y: oy + 52, "font-size": 12, fill: "#555" }, root, `rank #${c.rank} of ${state.productAll.length}`);
           });
         });
       }
@@ -715,7 +775,7 @@
         dome.pointLabels = pointLabels;
         group.add(dome.points);
 
-        if (op === "balanced") {
+        if (op === "maximin") {
           const alpha = (parseFloat(els.circleAngle.value) * Math.PI) / 180;
           const threshold = Math.cos(alpha);
           const inside = [];
@@ -803,8 +863,8 @@
           }
           addLabel(`${c.rank}. ${c.candidate}`, v3(p), wordColor, isWinner);
 
-          if (showAngles && op === "balanced") {
-            // The larger angle (the weaker similarity) sets the balanced score, so it gets the thick arc
+          if (showAngles && op === "maximin") {
+            // The larger angle (the weaker similarity) sets the maximin score, so it gets the thick arc
             const w = v3(p).normalize();
             const angles = [
               { from: vecA, word: wordA, theta: vecA.angleTo(w) },
@@ -877,16 +937,17 @@
         }
         if (!next || token !== renderToken) return;
         Object.assign(state, next);
-        const balancedWinner = state.top.balanced[0];
-        if (balancedWinner) {
-          els.circleAngle.value = (Math.acos(Math.min(1, balancedWinner.score)) * 180) / Math.PI;
+        const maximinWinner = state.top.maximin[0];
+        if (maximinWinner) {
+          els.circleAngle.value = (Math.acos(Math.min(1, maximinWinner.score)) * 180) / Math.PI;
         }
         renderDome("centroid");
-        renderDome("balanced");
+        renderDome("maximin");
+        renderProduct();
         renderRectangles([
           {
             title: "Top 3 by area",
-            items: state.geoAll.slice(0, 3).map((c) => ({ ...c, color: WORD_COLORS[c.rank - 1], label: `${c.rank}. ${c.candidate}` })),
+            items: state.productAll.slice(0, 3).map((c) => ({ ...c, color: WORD_COLORS[c.rank - 1], label: `${c.rank}. ${c.candidate}` })),
           },
           {
             title: "Leaning toward one input",
@@ -924,22 +985,23 @@
         els.model.addEventListener("change", loadModel);
         els.wordA.addEventListener("change", renderAll);
         els.wordB.addEventListener("change", renderAll);
-        for (const op of ["centroid", "balanced"]) {
+        for (const op of ["centroid", "maximin"]) {
           ui[op].showAngles.addEventListener("change", () => renderDome(op));
           ui[op].showDrops.addEventListener("change", () => renderDome(op));
         }
         ui.centroid.topN.addEventListener("input", () => renderDome("centroid"));
-        els.circleAngle.addEventListener("input", () => renderDome("balanced"));
+        els.circleAngle.addEventListener("input", () => renderDome("maximin"));
+        els.productTopN.addEventListener("input", () => state && state.productAll && renderProduct());
         await loadModel();
         try {
           const three = await loadThree();
-          for (const op of ["centroid", "balanced"]) {
+          for (const op of ["centroid", "maximin"]) {
             domes[op] = createDome(ui[op].dome, three);
             ui[op].status.hidden = true;
             renderDome(op);
           }
         } catch (err) {
-          for (const op of ["centroid", "balanced"]) ui[op].status.textContent = `Couldn't load the 3D view: ${err.message}`;
+          for (const op of ["centroid", "maximin"]) ui[op].status.textContent = `Couldn't load the 3D view: ${err.message}`;
         }
       }
 

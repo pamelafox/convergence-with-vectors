@@ -32,7 +32,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DB_PATH = ROOT / "data" / "convergence.db"
 STARTING_WORDS_PATH = ROOT / "data" / "vocab_1000.txt"
 
-OperatorName = Literal["centroid", "balanced", "geometric_mean", "textual"]
+OperatorName = Literal["centroid", "maximin", "product", "textual"]
 assert set(get_args(OperatorName)) == set(OPERATOR_NAMES), "OperatorName must list every operator in operators.OPERATOR_NAMES"
 
 # Inputs are normalized the same way as the vocabulary file (lowercase, trimmed).

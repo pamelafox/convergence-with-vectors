@@ -28,7 +28,7 @@ from embeddings import VocabEmbeddings, embed_texts
 EmbedFn = Callable[[str, list[str]], np.ndarray]
 
 #: Names of every operator, in the order they should be presented by default.
-OPERATOR_NAMES: list[str] = ["centroid", "balanced", "geometric_mean", "textual"]
+OPERATOR_NAMES: list[str] = ["centroid", "maximin", "product", "textual"]
 
 #: Default phrase templates for the "textual" operator. ``{a}`` and ``{b}``
 #: are substituted with the two input words.
@@ -56,34 +56,30 @@ def normalize(vector: np.ndarray) -> np.ndarray:
     return vector / norm if norm > 0 else vector
 
 
-def balanced_scores(sim_a: np.ndarray, sim_b: np.ndarray) -> np.ndarray:
+def maximin_scores(sim_a: np.ndarray, sim_b: np.ndarray) -> np.ndarray:
     """min(cos(w, a), cos(w, b)) for every candidate -- rewards being close to *both*."""
     return np.minimum(sim_a, sim_b)
 
 
-def geometric_mean_scores(sim_a: np.ndarray, sim_b: np.ndarray) -> np.ndarray:
-    """Geometric mean of the two cosine similarities, with negatives clamped to 0.
+def product_scores(sim_a: np.ndarray, sim_b: np.ndarray) -> np.ndarray:
+    """Product of the two cosine similarities, with negatives clamped to 0.
 
-    A geometric mean is undefined for negative inputs (or gives a misleading
-    positive result if both happen to be negative, since the product of two
-    negatives is positive). To keep scores interpretable, any negative
-    cosine similarity is clamped to 0 *before* multiplying. This means a
-    candidate that is dissimilar (negative cosine) to either input word
-    scores exactly 0, the same as a candidate with 0 similarity -- it does
-    not get a "double negative" boost, and it does not receive a negative
-    score either.
+    Multiplying two negatives would give a misleading positive score, so any
+    negative cosine similarity is clamped to 0 *before* multiplying. A
+    candidate that is dissimilar (negative cosine) to either input word scores
+    exactly 0. Older models like MiniLM occasionally produce small negatives.
     """
     clipped_a = np.clip(sim_a, 0.0, None)
     clipped_b = np.clip(sim_b, 0.0, None)
-    return np.sqrt(clipped_a * clipped_b)
+    return clipped_a * clipped_b
 
 
 #: Registry of "pairwise" operators: pure functions of (sim_a, sim_b) arrays.
 #: Add an entry here to support a new pairwise-similarity operator without
 #: touching any CLI or reporting code.
 PAIRWISE_OPERATORS: dict[str, Callable[[np.ndarray, np.ndarray], np.ndarray]] = {
-    "balanced": balanced_scores,
-    "geometric_mean": geometric_mean_scores,
+    "maximin": maximin_scores,
+    "product": product_scores,
 }
 
 

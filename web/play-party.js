@@ -41,8 +41,8 @@ const MAX_ROUNDS = 10;
 
 const OPERATORS = {
   centroid: { anchor: "centroid", help: "Each player picks the word closest to the midpoint of the two words' vectors." },
-  balanced: { anchor: "balanced", help: "Each player picks the word whose weaker similarity to the two words is highest." },
-  geometric_mean: { anchor: "geometric-mean", help: "Each player picks the word with the biggest product of its similarities to the two words." },
+  maximin: { anchor: "maximin", help: "Each player picks the word whose weaker similarity to the two words is highest." },
+  product: { anchor: "product", help: "Each player picks the word with the biggest product of its similarities to the two words." },
   textual: { anchor: "textual", help: "Each player embeds the phrase “A and B” and picks the word closest to it." },
 };
 

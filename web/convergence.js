@@ -7,12 +7,12 @@
  * offline by export_web_embeddings.py and simply fetched as JSON here.
  *
  * Only the operators that need nothing but vocabulary vectors are supported
- * (centroid, balanced, geometric_mean). The "textual" operator, which
+ * (centroid, maximin, product). The "textual" operator, which
  * needs to embed an arbitrary phrase at request time, is intentionally not
  * ported since that would require running a model in the browser.
  */
 
-export const OPERATOR_NAMES = ["centroid", "balanced", "geometric_mean"];
+export const OPERATOR_NAMES = ["centroid", "maximin", "product"];
 
 /** Cache of loaded {model -> {words, vectors}} so repeated fetches are avoided. */
 const modelCache = new Map();
@@ -67,8 +67,8 @@ function vectorFor(modelData, word) {
 }
 
 const PAIRWISE_OPERATORS = {
-  balanced: (simA, simB) => simA.map((a, i) => Math.min(a, simB[i])),
-  geometric_mean: (simA, simB) => simA.map((a, i) => Math.sqrt(Math.max(a, 0) * Math.max(simB[i], 0))),
+  maximin: (simA, simB) => simA.map((a, i) => Math.min(a, simB[i])),
+  product: (simA, simB) => simA.map((a, i) => Math.max(a, 0) * Math.max(simB[i], 0)),
 };
 
 /**

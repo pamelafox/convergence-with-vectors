@@ -32,18 +32,18 @@
 
   .reveal pre {
     width: 100%;
-    border-left: 2px solid #ccc;
-    border-right: 2px solid #ccc;
+    border: 1px solid #d3dce6;
+    border-radius: 6px;
     box-shadow: none;
     font-size: 30px;
   }
 
   .reveal pre code {
-    padding: 8px 8px 8px 8px;
+    border-radius: 6px;
   }
 
-  .reveal .code-badge {
-    right: 10px;
+  .reveal pre code {
+    padding: 8px 8px 8px 8px;
   }
 
   .reveal code {
@@ -81,20 +81,172 @@
     padding-top: 150px;
   }
 
-  .no-code-badge .code-badge {
-    display: none;
-  }
-
-  .code-badge-language {
-    display: none;
-  }
-
   .reveal h3 {
     margin-bottom: 40px;
   }
 
   .smaller {
     font-size: smaller;
+  }
+
+  .reveal .viz-dome {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    cursor: grab;
+  }
+
+  .viz-dome canvas {
+    display: block;
+  }
+
+  .viz-dome .dome-labels {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+  }
+
+  .viz-dome .dome-label {
+    font: 600 16px "Work Sans", sans-serif;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 0 3px;
+    border-radius: 3px;
+  }
+
+  .viz-dome .dome-label.bold {
+    font-size: 19px;
+  }
+
+  .viz-dome .dome-tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: #222;
+    color: #fff;
+    font-size: 16px;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  .reveal .viz-slider-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.6em;
+  }
+
+  .reveal .viz-slider-label input {
+    flex: 1;
+  }
+
+  .reveal .viz-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .reveal .viz-row .viz-dome {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Fixed width so the dome doesn't resize as the slider adds or removes rows */
+  .reveal table.viz-sums {
+    margin: 0;
+    flex: 0 0 320px;
+    width: 320px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Small enough that all 10 rows fit next to the 300px dome */
+  .reveal table.viz-sums th,
+  .reveal table.viz-sums td {
+    font-size: 17px;
+    padding: 2px 8px;
+  }
+
+  .reveal table.viz-sums td:not(:first-child),
+  .reveal table.viz-sums th:not(:first-child) {
+    text-align: right;
+  }
+
+  .reveal svg.viz-product {
+    display: block;
+    flex: 1;
+    min-width: 0;
+    height: 300px;
+  }
+
+  .reveal table.viz-compare {
+    margin-left: 0;
+  }
+
+  .reveal table.viz-compare th,
+  .reveal table.viz-compare td {
+    font-size: 28px;
+    padding: 0.2em 0.6em;
+  }
+
+  .reveal table.template-compare {
+    margin: 0;
+  }
+
+  .reveal table.road-table {
+    margin: 0;
+    flex: 0 0 auto;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .reveal table.road-table tbody:first-of-type tr:last-child td {
+    border-bottom: 1px solid;
+  }
+
+  .reveal table.road-table th,
+  .reveal table.road-table td {
+    font-size: 24px;
+    padding: 2px 14px;
+    white-space: nowrap;
+  }
+
+  .reveal table.road-table td.road-fruit {
+    background: #dbe8f4;
+    font-weight: 700;
+  }
+
+  .reveal table.road-table tr.road-converged td {
+    background: #fff3c4;
+    font-weight: 700;
+  }
+
+  .reveal table.template-compare th,
+  .reveal table.template-compare td {
+    font-size: 26px;
+    padding: 2px 10px;
+    white-space: nowrap;
+  }
+
+  .reveal table.template-compare th {
+    white-space: normal;
+    vertical-align: bottom;
+  }
+
+  .reveal table.template-compare td:nth-child(-n + 2) {
+    font-weight: 700;
+    background: #dbe8f4;
+  }
+
+  .reveal table.template-compare td:nth-child(n + 3) {
+    background: #fff3c4;
+  }
+
+  .reveal .model-box {
+    display: inline-block;
+    padding: 0 0.4em;
+    border: 2px solid #3776ab;
+    border-radius: 0.3em;
+    background: #dbe8f4;
+    font-size: 0.85em;
   }
 
   .reveal table.compact th,
@@ -107,55 +259,79 @@
     margin-bottom: 10px;
   }
 
+  .reveal .use-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 24px;
+  }
+
+  .reveal .use-box {
+    padding: 20px 24px;
+    border: 2px solid #3776ab;
+    border-radius: 12px;
+    background: #dbe8f4;
+    font-size: 0.8em;
+  }
+
+  .reveal .use-box .use-icon {
+    font-size: 1.4em;
+    margin-right: 0.3em;
+  }
+
+  .reveal .worlds {
+    position: relative;
+    width: 960px;
+    margin: 0 auto;
+  }
+
+  .reveal .worlds img {
+    display: block;
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+  }
+
+  .reveal .worlds img + img {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
   .code-with-figure {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    align-items: center;
+    gap: 14px 16px;
   }
 
   .reveal .code-with-figure pre {
-    flex: 0 0 auto;
+    width: auto;
+    margin: 0;
+    align-self: stretch;
+  }
+
+  /* Fill the row so every code block is separated by the same grid gap */
+  .reveal .code-with-figure pre code {
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  .code-with-figure .viz {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .code-with-figure .viz img {
+    height: 100px;
     width: auto;
     margin: 0;
   }
 
-  .code-with-figure img {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-
-  .code-with-figure .figure-stack {
-    flex: 1 1 0;
-    min-width: 0;
-    text-align: center;
-    /* Rows match the code's 37px lines: encode (3), blank, formula (4), then blank + np.dot (3) */
-    display: grid;
-    grid-template-rows: 111px 37px 148px 112px;
-    padding-top: 8px;
-  }
-
-  .code-with-figure .figure-stack img {
-    height: 112px;
-    width: auto;
-    justify-self: center;
-  }
-
-  .code-with-figure .figure-stack .vectors {
-    grid-row: 1;
-    align-self: center;
-  }
-
-  .code-with-figure .figure-stack .formula {
-    grid-row: 3;
-    align-self: center;
-  }
-
-  .code-with-figure .figure-stack img {
-    grid-row: 4;
-  }
-
   .code-with-figure .formula .MathJax_SVG_Display {
     margin: 0 !important;
+    text-align: left !important;
   }
 
   .code-with-figure .formula {
@@ -171,11 +347,18 @@
   }
 
   .code-with-figure .vec-fire {
-    color: #4b5563;
+    color: #c2410c;
   }
 
-  .code-with-figure .vec-flame {
-    color: #c2410c;
+  .code-with-figure .vec-whale {
+    color: #3776ab;
+  }
+
+  .code-with-figure .vec-word {
+    display: inline-block;
+    width: 4.2em;
+    font-family: sans-serif;
+    font-weight: bold;
   }
 
   .about-layout {
@@ -185,17 +368,10 @@
     align-items: center;
   }
 
-  .reveal .kicker {
-    margin: 0;
-    color: #1c6192;
-    font-size: 0.7em;
+  .reveal .about-name {
+    margin: 0 0 0.3em;
+    font-size: 1.4em;
     font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
-  .reveal .about-layout h2 {
-    margin: 0.1em 0 0.3em;
   }
 
   .reveal .about-role {
@@ -216,6 +392,72 @@
     border: 0;
     padding: 0.15em 0.8em 0.15em 0;
     font-size: 0.8em;
+  }
+
+  .reveal .kicker {
+    margin: 0;
+    font-size: 0.7em;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #3776ab;
+  }
+
+  .reveal .questions-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    margin-top: 30px;
+  }
+
+  .reveal .questions-layout > div {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .reveal .thanks-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+  }
+
+  .reveal .thanks-row img.slides-qr {
+    width: 340px;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 12px;
+    background: #fff;
+    border-radius: 12px;
+  }
+
+  .reveal .questions-layout a {
+    white-space: nowrap;
+  }
+
+  .reveal .questions-layout table.about-links td {
+    font-size: 0.7em;
+  }
+
+  .reveal .card {
+    margin: 0;
+    padding: 2px 0 2px 18px;
+    border-left: 6px solid #ffd43b;
+  }
+
+  .reveal .card .tag {
+    font-size: 0.75em;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #3776ab;
+  }
+
+  .reveal .card p {
+    margin: 4px 0 0;
+    font-size: 0.6em;
   }
 
   .about-photo {
@@ -315,7 +557,6 @@
   @media print {
     .no-print,
     .no-print *,
-    .code-badge,
     .slide-menu-button {
       display: none !important;
     }
