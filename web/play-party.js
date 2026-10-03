@@ -34,9 +34,11 @@ const humanError = document.getElementById("party-human-error");
 const settingsControls = [operatorSelect, selectA, selectB, ...playerChoices];
 
 const HUMAN = "you";
+const RANDOM_OPPONENT = "random";
+const randomOpponentOption = new Option("Random model each round", RANDOM_OPPONENT);
 
 const COUNTDOWN_DELAY = 560;
-const SHOUT_DELAY = 850;
+const SHOUT_DELAY = 1600;
 const MAX_ROUNDS = 10;
 
 const OPERATORS = {
@@ -54,6 +56,7 @@ let skipAnimation = false;
 
 function labelFor(name) {
   if (name === HUMAN) return "You";
+  if (name === RANDOM_OPPONENT) return "Random model";
   return models.find((model) => model.name === name)?.label ?? name;
 }
 
@@ -83,9 +86,17 @@ function updateSettings() {
   modelPickers.hidden = random;
   pickerA.hidden = human;
   pickerBLabel.textContent = human ? "Your opponent" : "Player B";
+  if (human && !randomOpponentOption.parentElement) selectB.add(randomOpponentOption);
+  if (!human && randomOpponentOption.parentElement) {
+    if (selectB.value === RANDOM_OPPONENT) selectB.selectedIndex = 1;
+    randomOpponentOption.remove();
+  }
   if (human) {
     setSeatLabels({ A: HUMAN, B: selectB.value });
-    explainer.textContent = `You and ${labelFor(selectB.value)} each pick a word between the current pair. ${labelFor(selectB.value)} uses the ${operatorName.toLowerCase()} operator.`;
+    explainer.textContent =
+      selectB.value === RANDOM_OPPONENT
+        ? `Each round, you play against a model drawn at random from ${models.length}. Every model uses the ${operatorName.toLowerCase()} operator.`
+        : `You and ${labelFor(selectB.value)} each pick a word between the current pair. ${labelFor(selectB.value)} uses the ${operatorName.toLowerCase()} operator.`;
     return;
   }
   setSeatLabels(random ? null : { A: selectA.value, B: selectB.value });
@@ -110,10 +121,11 @@ function randomPair() {
 }
 
 function setBubbles(wordA, wordB, visible = true) {
-  bubbleA.textContent = wordA;
-  bubbleB.textContent = wordB;
-  bubbleA.classList.toggle("show", visible);
-  bubbleB.classList.toggle("show", visible);
+  for (const [bubble, word] of [[bubbleA, wordA], [bubbleB, wordB]]) {
+    bubble.textContent = word;
+    bubble.classList.toggle("long-word", word.length > 10);
+    bubble.classList.toggle("show", visible);
+  }
 }
 
 function setPlayersState(state) {
@@ -184,18 +196,49 @@ function addHistoryRow(label, words, converged = false, players = null) {
 
 function celebrate() {
   confettiLayer.replaceChildren();
-  const colors = ["#ffd85c", "#f54f9a", "#55d6be", "#ffffff", "#9f7aea"];
-  for (let index = 0; index < 80; index++) {
+  const colors = ["#ffd85c", "#f54f9a", "#55d6be", "#ffffff", "#9f7aea", "#ff9f68"];
+  const shapes = ["heart", "star", "dot", "ribbon"];
+  for (let index = 0; index < 70; index++) {
     const piece = document.createElement("span");
-    piece.className = "confetti-piece";
-    piece.style.left = `${Math.random() * 100}%`;
+    piece.className = `confetti-piece confetti-${shapes[index % shapes.length]}`;
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 70 + Math.random() * 160;
     piece.style.background = colors[index % colors.length];
-    piece.style.setProperty("--drift", `${-90 + Math.random() * 180}px`);
-    piece.style.setProperty("--spin", `${360 + Math.random() * 900}deg`);
-    piece.style.setProperty("--fall-duration", `${1.8 + Math.random() * 1.6}s`);
-    piece.style.setProperty("--fall-delay", `${Math.random() * 0.7}s`);
+    piece.style.setProperty("--x", `${Math.cos(angle) * distance}px`);
+    piece.style.setProperty("--y", `${Math.sin(angle) * distance - 40}px`);
+    piece.style.setProperty("--drift", `${-40 + Math.random() * 80}px`);
+    piece.style.setProperty("--fall", `${140 + Math.random() * 160}px`);
+    piece.style.setProperty("--spin", `${(Math.random() < 0.5 ? -1 : 1) * (240 + Math.random() * 480)}deg`);
+    piece.style.setProperty("--size", `${0.8 + Math.random() * 0.7}`);
+    piece.style.setProperty("--fall-duration", `${2.2 + Math.random() * 1.4}s`);
+    piece.style.setProperty("--fall-delay", `${0.35 + Math.random() * 0.25}s`);
     confettiLayer.appendChild(piece);
   }
+}
+
+const TROPHY_SVG = `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <path d="M17 14H9v5c0 8 5 13 12 13M47 14h8v5c0 8-5 13-12 13" fill="none" stroke="#f5b82e" stroke-width="4" stroke-linecap="round"/>
+  <path d="M16 8h32v14c0 12-7 20-16 20S16 34 16 22z" fill="#ffd85c" stroke="#c98a12" stroke-width="2"/>
+  <path d="M21 12v9c0 6 2 10 5 13" fill="none" stroke="#fff6cf" stroke-width="3" stroke-linecap="round"/>
+  <path d="M32 15l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="#fff"/>
+  <rect x="28" y="41" width="8" height="8" fill="#e0a21f"/>
+  <rect x="19" y="48" width="26" height="8" rx="2" fill="#c98a12"/>
+</svg>`;
+
+function convergeMark() {
+  const mark = document.createElement("span");
+  mark.className = "converge-mark";
+  mark.setAttribute("aria-hidden", "true");
+  for (const part of ["spark spark-a", "spark spark-b", "ring"]) {
+    const piece = document.createElement("span");
+    piece.className = part;
+    mark.appendChild(piece);
+  }
+  const trophy = document.createElement("span");
+  trophy.className = "trophy";
+  trophy.innerHTML = TROPHY_SVG;
+  mark.appendChild(trophy);
+  return mark;
 }
 
 function describeEnding(result) {
@@ -244,7 +287,7 @@ function finishGame({ converged, word, rounds, title = "Game over", pill = "No c
   setPlayersState("idle");
   humanForm.hidden = true;
   if (converged) {
-    countdown.textContent = "🎉";
+    countdown.replaceChildren(convergeMark());
     roundLabel.textContent = "Converged!";
     prompt.textContent = `One shared thought: ${word}`;
     announcer.textContent = `Converged on “${word}” in ${rounds} round${rounds === 1 ? "" : "s"}!`;
@@ -292,10 +335,9 @@ function waitForHumanWord(pair) {
 }
 
 async function playHumanGame(startWords, runId) {
-  const opponent = selectB.value;
+  const choice = selectB.value;
   const operator = operatorSelect.value;
-  const players = { A: HUMAN, B: opponent };
-  setSeatLabels(players);
+  setSeatLabels({ A: HUMAN, B: choice });
 
   if (!(await showCountdown("Opening shout", null, runId))) return;
   setPlayersState("shouting");
@@ -307,11 +349,14 @@ async function playHumanGame(startWords, runId) {
 
   let pair = startWords;
   for (let round = 1; round <= MAX_ROUNDS; round++) {
+    const opponent = choice === RANDOM_OPPONENT ? models[Math.floor(Math.random() * models.length)].name : choice;
+    const players = { A: HUMAN, B: opponent };
     // The model only sees the current pair, so fetching now can't peek at the human's word
     const modelPick = combine(operator, opponent, ...pair, { topK: 1 }).then((candidates) => candidates[0]?.candidate);
     modelPick.catch(() => {});
 
     roundLabel.textContent = `Round ${round}`;
+    setSeatLabels({ A: HUMAN, B: choice });
     countdown.textContent = "?";
     prompt.textContent = `What's between ${pair[0]} + ${pair[1]}?`;
     announcer.textContent = `Your turn: what word is between “${pair[0]}” and “${pair[1]}”?`;
@@ -334,6 +379,7 @@ async function playHumanGame(startWords, runId) {
     }
 
     setPlayersState("shouting");
+    setSeatLabels(players);
     setBubbles(humanWord, modelWord);
     const converged = humanWord === modelWord;
     prompt.textContent = converged ? "You found the same word!" : "New pair unlocked";

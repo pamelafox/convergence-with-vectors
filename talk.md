@@ -1,36 +1,25 @@
- # Convergence in vector space
+# Convergence in vector space
 
 Saturday, 3 Oct 2026 11:00 am - 11:50 am (50 minutes)
 
-Description
+Description:
 Vector embeddings power modern search, but they aren't always so easy to understand. Instead of starting with math, let's build intuition through a word game!
 
 Convergence is a word-association game where players try to independently arrive at the same word. After we play it in person, I'll recreate it using Python, embeddings, and cosine similarity. We'll pit different embedding models against each other to see which converge quickly, which get stuck, and which make surprisingly weird choices.
 
-- (2 min) Introduction to me
-- (2 min) Introduce Convergence
-- (5 min) Play a quick audience round
-- (3 min) Play the game with models
-   Start with the same words the audience just used, then try random
+## Slide outline (current deck)
 
+Estimated times for the full 50-minute slot (no Q&A time needed).
 
-How did that work??
-
-- (8 min) Explain words as vectors
-   https://pamelafox.github.io/my-py-talks/pgvector-python/
-   Python code to generate embeddings
-   Distance between two vectors- cosine
-   http://blog.pamelafox.org/2025/05/a-visual-exploration-of-vector.html
-
-   Different embedding models
-   MTEB leaderboard
-
-- (5 min) Find the word between two words - 4 operators
-   Use the operators page to visualize
-   Show the Python code for each
-
-- (2 min) Play the game again, with advanced options
-
-- (8 min) Embedding model battle: Analysis of running different models against each other to see who is quicker to converge and slower
-
-- (2 min) Wrap up with takeaways - where is vector search useful
+| Start | Section | Slides |
+|---|---|---|
+| :00 | Intro | 1–2 |
+| :02 | Play with humans | 3–4 |
+| :09 | Play with models | 5 |
+| :12 | Words as vectors | 6–12 |
+| :21 | Where two words meet | 13–18 |
+| :29 | Playing the game | 19–22 |
+| :34 | Embedding model battle | 23–29 |
+| :43 | Wrap-up | 30–34 |
+| :47 | Thank you | 35 |
+| :50 | End | |

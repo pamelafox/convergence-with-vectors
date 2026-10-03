@@ -18,7 +18,6 @@ which explores vector embeddings by recreating the improv word game
 * [Comparing word-combination operators](#comparing-word-combination-operators)
 * [Running the web app](#running-the-web-app)
 * [Deploying to Azure Container Apps](#deploying-to-azure-container-apps)
-* [Repository structure](#repository-structure)
 
 ## The Convergence game
 
@@ -287,34 +286,6 @@ To keep one container warm (for example, during a talk), then scale back down af
 azd env set CONTAINER_MIN_REPLICAS 1
 azd provision
 ```
-
-## Repository structure
-
-| Path | Purpose |
-| ------ | --------- |
-| [docs/index.html](docs/index.html) | The reveal.js slides for the talk, published with GitHub Pages |
-| [embed.py](embed.py) | Embeds words with one model and compares every pair with cosine similarity |
-| [cosine.py](cosine.py) | Computes cosine similarity with the full formula and with `np.dot`, and draws the angles as an SVG |
-| [similarity.py](similarity.py) | Ranks every vocabulary word by similarity to one word, and draws a histogram as an SVG |
-| [vocab.py](vocab.py) | Vocabulary file parsing for the word-combination experiments |
-| [embeddings.py](embeddings.py) | Model registry and cached vocabulary embeddings |
-| [operators.py](operators.py) | The four word-combination operators and their scoring math |
-| [reporting.py](reporting.py) | Result rows, CSV/JSON writers, and terminal tables |
-| [compare_pair.py](compare_pair.py) | CLI: compare all operators for one word pair |
-| [compare_batch.py](compare_batch.py) | CLI: run a batch of word pairs from a CSV file |
-| [simulate_convergence.py](simulate_convergence.py) | CLI: simulate the Convergence game between two models |
-| [model_battle.py](model_battle.py) | CLI: battle every pair of models over many games and report convergence rates |
-| [build_db.py](build_db.py) | CLI: embed the vocabulary and write the SQLite database for the web app |
-| [backend/](backend) | FastAPI app (`app.py`) and SQLite embedding store (`db.py`) |
-| [Dockerfile](Dockerfile), [azure.yaml](azure.yaml), [infra/](infra) | Container image and Azure Developer CLI infrastructure (Bicep) for Azure Container Apps |
-| [data/sample_vocab.txt](data/sample_vocab.txt) | Sample candidate vocabulary |
-| [data/sample_pairs.csv](data/sample_pairs.csv) | Sample word pairs for `compare_batch.py` |
-| [data/vocab_1000.txt](data/vocab_1000.txt) | ~1000-word vocabulary used by the web app |
-| [web/](web) | Pages for the web app: the game and the operator explainer |
-| [tests/](tests) | Focused pytest tests for the modules above |
-| [docs/slides_assets/](docs/slides_assets) | CSS, images, and video used by the slides |
-| [http/](http) | Sample embeddings requests for the VS Code REST Client extension |
-| [AGENTS.md](AGENTS.md) | Context and conventions for AI coding agents |
 
 ## Resources
 

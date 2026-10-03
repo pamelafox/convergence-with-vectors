@@ -36,21 +36,13 @@
       <section class="party-intro">
         <h1>Convergence</h1>
         <p>
-          Starting with 2 random words: can models converge on the word in the middle?
+          Starting with 2 random words: can players converge on the word in the middle?
         </p>
       </section>
 
+      <details class="party-customize">
+      <summary>Customize the game</summary>
       <section class="party-settings" aria-label="Game settings">
-        <div class="setting">
-          <label for="party-operator">How players pick the middle word</label>
-          <select id="party-operator" aria-describedby="party-operator-help">
-            <option value="centroid">Centroid</option>
-            <option value="maximin">Maximin</option>
-            <option value="product">Product</option>
-            <option value="textual">Textual</option>
-          </select>
-          <p id="party-operator-help" class="setting-help"></p>
-        </div>
         <fieldset class="setting">
           <legend>Starting words</legend>
           <div class="start-words">
@@ -61,7 +53,17 @@
           <datalist id="party-vocab"></datalist>
           <p id="party-words-help" class="setting-help">Leave blank for random words. Any word works, even ones outside the models' vocabulary.</p>
         </fieldset>
-        <fieldset class="setting">
+        <div class="setting">
+          <label for="party-operator">Operator: how the middle word is picked</label>
+          <select id="party-operator" aria-describedby="party-operator-help">
+            <option value="centroid">Centroid</option>
+            <option value="maximin">Maximin</option>
+            <option value="product">Product</option>
+            <option value="textual">Textual</option>
+          </select>
+          <p id="party-operator-help" class="setting-help"></p>
+        </div>
+        <fieldset class="setting players-setting">
           <legend>Players</legend>
           <label class="choice"><input type="radio" name="party-players" value="fixed" checked /> Same two models all game</label>
           <label class="choice"><input type="radio" name="party-players" value="random" /> Random models each round</label>
@@ -72,6 +74,7 @@
           </div>
         </fieldset>
       </section>
+      </details>
 
       <section class="party-controls" aria-label="Game controls">
         <button id="party-play" class="party-play-button" type="button" disabled>
@@ -107,7 +110,7 @@
           <label for="party-human-word">Your word</label>
           <input id="party-human-word" list="party-vocab" autocomplete="off" maxlength="60" aria-describedby="party-human-help party-human-error" />
           <button type="submit" class="party-play-button">Shout it!</button>
-          <p id="party-human-help" class="setting-help">The model only knows its ~1000-word vocabulary, so you can only converge on one of those words.</p>
+          <p id="party-human-help" class="setting-help">The model only knows its 5,000-word vocabulary, so you can only converge on one of those words.</p>
           <p id="party-human-error" class="human-error" role="alert"></p>
         </form>
 
