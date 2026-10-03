@@ -74,19 +74,12 @@
                 </ol>
                 <aside class="notes">
                     Introduce the game from improv class. Emphasize: you can't plan, you can only think about the two words.
-                </aside>
-            </section>
-
-            <section class="heading-only">
-                <h2>Your turn! 🎤</h2>
-                <p style="text-align:center; font-size:2em; margin-top:40px;">3… 2… 1…</p>
-                <aside class="notes">
                     Pick two volunteers. Write the starting words down: they'll be the models' starting words next.
                 </aside>
             </section>
 
             <section>
-                <h3>Now the models play!</h3>
+                <h3>Can computers play it?</h3>
                 <video data-autoplay muted loop playsinline src="slides_assets/models_play.mp4" style="display:block; margin:0 auto; height:480px;"
                     aria-label="Recording of the game: MiniLM L6 and mxbai Embed Large start from piano and rain, say musician and umbrella, then piano and artist, then both say musician"></video>
                 <p style="text-align:center; margin-top:10px;">
@@ -132,7 +125,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="published-by"><th>Published by</th><td>Hugging Face</td><td>Hugging Face</td><td>BAAI</td><td>Microsoft</td><td>Mixedbread</td><td>Qwen</td></tr>
+                        <tr class="published-by"><th>Publisher</th><td>Hugging Face</td><td>Hugging Face</td><td>BAAI</td><td>Microsoft</td><td>Mixedbread</td><td>Qwen</td></tr>
                         <tr><th>Parameters</th><td>23 <small>M</small></td><td>33 <small>M</small></td><td>33 <small>M</small></td><td>268 <small>M</small></td><td>335 <small>M</small></td><td>596 <small>M</small></td></tr>
                         <tr><th>Dimensions</th><td>384</td><td>384</td><td>384</td><td>640</td><td>1,024</td><td>1,024</td></tr>
                         <tr><th>Max tokens</th><td>256</td><td>128</td><td>512</td><td>32,768</td><td>512</td><td>32,768</td></tr>
@@ -389,7 +382,7 @@ uv run model_battle.py --games 100 --operator centroid
             </section>
 
             <section>
-                <h3>Which pairs converge most?</h3>
+                <h3 style="font-size:1.5em">Which models play well with others?</h3>
 
                 <p>Convergence rates with the centroid operator:</p>
                 <div class="row">

@@ -20,6 +20,7 @@ dev = [
     "ruff",
     "black",
     "pytest",
+    "pytest-playwright>=0.9.0",
 ]
 
 [tool.uv]

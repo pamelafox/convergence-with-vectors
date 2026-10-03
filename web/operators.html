@@ -193,6 +193,35 @@
       #product-chart {
         max-width: 560px;
       }
+      .template-controls {
+        margin-bottom: 0.75rem;
+      }
+      .template-presets {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-top: 0.5rem;
+      }
+      .template-presets button {
+        padding: 0.25rem 0.7rem;
+        border: 1px solid #c9bdf0;
+        border-radius: 999px;
+        background: #eeeaf8;
+        color: #4b2fa0;
+        font: inherit;
+        font-size: 0.9rem;
+        cursor: pointer;
+      }
+      .template-presets button[aria-pressed="true"] {
+        background: #6c43d9;
+        color: #fff;
+      }
+      #textual-error {
+        color: #b00020;
+      }
+      #textual-error:empty {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -328,7 +357,32 @@
       That's in between centroid, where any loss can be made up by an equal gain, and maximin, where nothing makes up for the weaker side.
     </p>
 
-    <h2 id="compare">4. All operators side by side</h2>
+    <h2 id="textual">4. Textual: embed a phrase</h2>
+    <p>
+      Textual skips the vector arithmetic. It fills a phrase template like <code>{a} and {b}</code>, embeds the whole phrase
+      with the model, and picks the word closest to that phrase's vector <var>p</var>. The score is cos(w, p).
+      The model reads both words together, so it can capture a combined meaning that no formula of s<sub>a</sub> and s<sub>b</sub> can.
+    </p>
+    <div class="template-controls">
+      <label for="textual-template">Phrase template (use <code>{a}</code> and <code>{b}</code>)</label>
+      <input type="text" id="textual-template" value="{a} and {b}" maxlength="200" />
+      <div class="template-presets" aria-label="Template presets">
+        <button type="button" data-template="{a} and {b}">{a} and {b}</button>
+        <button type="button" data-template="the word between {a} and {b}">the word between {a} and {b}</button>
+        <button type="button" data-template="something associated with both {a} and {b}">something associated with both {a} and {b}</button>
+        <button type="button" data-template="the concept connecting {a} and {b}">the concept connecting {a} and {b}</button>
+      </div>
+      <p class="note">Embedded phrase: <q id="textual-phrase"></q></p>
+      <p id="textual-error" role="alert"></p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>rank</th><th>word</th><th>cos(w, p)</th></tr></thead>
+        <tbody id="textual-body"></tbody>
+      </table>
+    </div>
+
+    <h2 id="compare">5. All operators side by side</h2>
     <p>The top 5 for each operator for this pair. Highlighted cells are where an operator's choice differs from centroid.</p>
     <div class="table-scroll">
       <table>
@@ -336,14 +390,6 @@
         <tbody id="compare-body"></tbody>
       </table>
     </div>
-
-    <h2 id="textual">What about <code>textual</code>?</h2>
-    <p>
-      The fourth operator in <code>operators.py</code> skips the vector arithmetic. It embeds a phrase like
-      <em>"earring and modem"</em> and finds the word closest to that phrase's vector. The transformer reads both words together,
-      so it can capture a combined meaning that a plain average can't. That needs the model at run time to embed the new phrase,
-      which the Python backend does on demand: its picks are the <code>textual</code> column in the table above.
-    </p>
 
     <script type="module">
       import { combine, getVocab, listModels, similarities } from "./api.js";
@@ -370,6 +416,11 @@
         product: document.getElementById("product-chart"),
         productTopN: document.getElementById("product-top-n"),
         productTopNOut: document.getElementById("product-top-n-out"),
+        textualTemplate: document.getElementById("textual-template"),
+        textualPhrase: document.getElementById("textual-phrase"),
+        textualError: document.getElementById("textual-error"),
+        textualBody: document.getElementById("textual-body"),
+        templatePresets: document.querySelectorAll(".template-presets button"),
       };
 
       // Each dome section has its own container and controls
@@ -892,6 +943,39 @@
         dome.render();
       }
 
+      let textualToken = 0;
+
+      /** Fetch textual's top 5 for the current template and list them. */
+      async function renderTextual() {
+        if (!state || !state.simA) return;
+        const template = els.textualTemplate.value.trim() || "{a} and {b}";
+        for (const button of els.templatePresets) button.setAttribute("aria-pressed", String(button.dataset.template === template));
+        els.textualPhrase.textContent = template.replaceAll("{a}", state.wordA).replaceAll("{b}", state.wordB);
+        const token = ++textualToken;
+        let candidates;
+        try {
+          candidates = await combine("textual", els.model.value, state.wordA, state.wordB, { topK: 5, template });
+        } catch (err) {
+          if (token === textualToken) els.textualError.textContent = err.message;
+          return;
+        }
+        if (token !== textualToken) return;
+        els.textualError.textContent = "";
+
+        els.textualBody.replaceChildren(
+          ...candidates.map((c) => {
+            const tr = document.createElement("tr");
+            if (c.rank === 1) tr.classList.add("winner");
+            for (const value of [c.rank, c.candidate, fmt3(c.score)]) {
+              const td = document.createElement("td");
+              td.textContent = value;
+              tr.appendChild(td);
+            }
+            return tr;
+          }),
+        );
+      }
+
       function renderComparison() {
         const { top } = state;
         const headRow = document.createElement("tr");
@@ -958,6 +1042,7 @@
           },
         ]);
         renderComparison();
+        renderTextual();
       }
 
       async function loadModel() {
@@ -992,6 +1077,13 @@
         ui.centroid.topN.addEventListener("input", () => renderDome("centroid"));
         els.circleAngle.addEventListener("input", () => renderDome("maximin"));
         els.productTopN.addEventListener("input", () => state && state.productAll && renderProduct());
+        els.textualTemplate.addEventListener("change", renderTextual);
+        for (const button of els.templatePresets) {
+          button.addEventListener("click", () => {
+            els.textualTemplate.value = button.dataset.template;
+            renderTextual();
+          });
+        }
         await loadModel();
         try {
           const three = await loadThree();

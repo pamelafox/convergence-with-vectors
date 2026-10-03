@@ -1,7 +1,6 @@
 import { combine, getStartingWords, getVocab, listModels, simulateConvergence } from "./api.js";
 
 const playButton = document.getElementById("party-play");
-const skipButton = document.getElementById("party-skip");
 const loadingStatus = document.getElementById("party-loading");
 const countdown = document.getElementById("party-countdown");
 const roundLabel = document.getElementById("party-round");
@@ -36,6 +35,8 @@ const settingsControls = [operatorSelect, selectA, selectB, ...playerChoices];
 const HUMAN = "you";
 const RANDOM_OPPONENT = "random";
 const randomOpponentOption = new Option("Random model each round", RANDOM_OPPONENT);
+// A model that differs a lot from MiniLM L6 (Player A's default), so games are more interesting
+const DEFAULT_MODEL_B = "harrier-270m";
 
 const COUNTDOWN_DELAY = 560;
 const SHOUT_DELAY = 1600;
@@ -52,7 +53,6 @@ let models = [];
 let vocabulary = [];
 let startingVocabulary = [];
 let currentRun = 0;
-let skipAnimation = false;
 
 function labelFor(name) {
   if (name === HUMAN) return "You";
@@ -73,6 +73,11 @@ function setSeatLabels(names) {
   modelLabelB.textContent = names ? labelFor(names.B) : "Random model";
 }
 
+function selectDefaultModelB() {
+  selectB.value = DEFAULT_MODEL_B;
+  if (!selectB.value) selectB.selectedIndex = 1;
+}
+
 function updateSettings() {
   const operator = operatorSelect.value;
   const operatorName = operatorSelect.selectedOptions[0].textContent;
@@ -88,7 +93,7 @@ function updateSettings() {
   pickerBLabel.textContent = human ? "Your opponent" : "Player B";
   if (human && !randomOpponentOption.parentElement) selectB.add(randomOpponentOption);
   if (!human && randomOpponentOption.parentElement) {
-    if (selectB.value === RANDOM_OPPONENT) selectB.selectedIndex = 1;
+    if (selectB.value === RANDOM_OPPONENT) selectDefaultModelB();
     randomOpponentOption.remove();
   }
   if (human) {
@@ -136,7 +141,7 @@ function setPlayersState(state) {
 }
 
 function delay(milliseconds, runId) {
-  if (skipAnimation || runId !== currentRun) return Promise.resolve();
+  if (runId !== currentRun) return Promise.resolve();
   return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
@@ -306,7 +311,6 @@ function finishGame({ converged, word, rounds, title = "Game over", pill = "No c
   playButton.disabled = false;
   setSettingsDisabled(false);
   playButton.innerHTML = '<span aria-hidden="true">↻</span> Play again';
-  skipButton.hidden = true;
   loadingStatus.textContent = "Ready for another game whenever you are.";
 }
 
@@ -404,12 +408,8 @@ async function startGame() {
   }
   const runId = ++currentRun;
   const human = playersMode() === "human";
-  skipAnimation = false;
   playButton.disabled = true;
   setSettingsDisabled(true);
-  skipButton.hidden = human;
-  skipButton.disabled = false;
-  skipButton.textContent = "Skip to the result";
   loadingStatus.textContent = human ? "Type your word each round, then the model's word is revealed with yours." : "The models are thinking in vectors. The shouts are revealed live.";
   outcome.textContent = "Game in progress";
   outcome.className = "outcome-pill";
@@ -435,17 +435,10 @@ async function startGame() {
     loadingStatus.textContent = `The models couldn't play: ${error.message}`;
     playButton.disabled = false;
     setSettingsDisabled(false);
-    skipButton.hidden = true;
     return;
   }
   await animateGame(result, startWords, runId);
 }
-
-skipButton.addEventListener("click", () => {
-  skipAnimation = true;
-  skipButton.disabled = true;
-  skipButton.textContent = "Skipping…";
-});
 
 playButton.addEventListener("click", startGame);
 for (const control of settingsControls) control.addEventListener("change", updateSettings);
@@ -456,14 +449,14 @@ async function init() {
   for (const select of [selectA, selectB]) {
     select.replaceChildren(...models.map((model) => new Option(model.label, model.name)));
   }
-  selectB.selectedIndex = 1;
+  selectDefaultModelB();
   // Every model's vocabulary comes from the same word list, so the first one works for suggestions.
   [vocabulary, startingVocabulary] = await Promise.all([getVocab(models[0].name), getStartingWords()]);
   if (startingVocabulary.length < 2) throw new Error("There aren't enough starting words to play.");
   vocabList.replaceChildren(...vocabulary.map((word) => new Option(word)));
 
   updateSettings();
-  loadingStatus.textContent = `${models.length} models are ready to play.`;
+  loadingStatus.textContent = ``;
   playButton.disabled = false;
 }
 

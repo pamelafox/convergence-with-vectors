@@ -66,3 +66,5 @@ All scoring happens in Python: the web pages call the backend rather than reimpl
 * Load models with `sentence-transformers`, running on CPU.
 * Never hardcode secrets; read tokens from environment variables, optionally loaded via `python-dotenv`.
 * Run the tests with `uv run pytest tests/`; they use small synthetic vectors and fake embedders, so no model downloads are needed.
+  `tests/test_e2e_play.py` drives the game page in a real browser, so run `uv run playwright install chromium` once first.
+  Add `--real-models` to run those browser tests against the real models and `data/convergence.db` instead of the fake embedder.

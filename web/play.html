@@ -80,7 +80,6 @@
         <button id="party-play" class="party-play-button" type="button" disabled>
           <span aria-hidden="true">▶</span> Start
         </button>
-        <button id="party-skip" class="party-skip-button" type="button" hidden>Skip to the result</button>
         <p id="party-loading" role="status">Warming up the models…</p>
       </section>
 
@@ -108,7 +107,7 @@
 
         <form id="party-human-form" class="human-turn" hidden>
           <label for="party-human-word">Your word</label>
-          <input id="party-human-word" list="party-vocab" autocomplete="off" maxlength="60" aria-describedby="party-human-help party-human-error" />
+          <input id="party-human-word" autocomplete="off" maxlength="60" aria-describedby="party-human-help party-human-error" />
           <button type="submit" class="party-play-button">Shout it!</button>
           <p id="party-human-help" class="setting-help">The model only knows its 5,000-word vocabulary, so you can only converge on one of those words.</p>
           <p id="party-human-error" class="human-error" role="alert"></p>

@@ -49,8 +49,9 @@ export async function getStartingWords() {
  *
  * @returns {Promise<{rank: number, candidate: string, score: number, simA: number, simB: number}[]>}
  */
-export async function combine(operator, model, wordA, wordB, { topK = 5, includeInputs = false } = {}) {
+export async function combine(operator, model, wordA, wordB, { topK = 5, includeInputs = false, template = null } = {}) {
   const params = new URLSearchParams({ model, a: wordA, b: wordB, operator, top_k: topK, include_inputs: includeInputs });
+  if (template) params.set("template", template);
   return (await getJSON(`/api/combine?${params}`)).candidates.map(toCandidate);
 }
 

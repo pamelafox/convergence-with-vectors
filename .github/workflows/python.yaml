@@ -21,3 +21,7 @@ jobs:
           run: uv run ruff check .
         - name: Check formatting with black
           run: uv run black . --check --verbose
+        - name: Install Playwright browser
+          run: uv run playwright install --with-deps chromium
+        - name: Run tests
+          run: uv run pytest tests/
