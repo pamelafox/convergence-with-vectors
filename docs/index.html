@@ -235,7 +235,24 @@ scores = np.dot(vocab.vectors, query)
             </section>
 
             <section>
-                <h3>Operator 2: Maximin</h3>
+                <h3>Operator 2: Product</h3>
+
+                <p>Find the word with the highest product of similarities.</p>
+                <pre><code class="language-python" data-trim>
+scores = (np.clip(sim_a, 0, None) *
+          np.clip(sim_b, 0, None))
+                </code></pre>
+                <p class="smaller">The biggest rectangle <code>s_a × s_b</code> wins, so one low similarity hurts.</p>
+                <label class="viz-slider-label">Top <output class="viz-topn-out"></output>
+                    <input type="range" class="viz-topn" min="1" max="10" value="1"></label>
+                <div class="viz-row">
+                <svg class="viz-product" role="img" aria-label="Every word plotted by its similarity to earring and to modem, with each top word's s_a by s_b rectangle"></svg>
+                <table class="viz-sums" data-op="product"></table>
+                </div>
+            </section>
+
+            <section>
+                <h3>Operator 3: Maximin</h3>
 
                 <p>Find the word whose <em>weaker</em> similarity is highest.</p>
                 <pre><code class="language-python" data-trim>
@@ -253,23 +270,6 @@ scores = np.minimum(sim_a, sim_b)
                     since cosine similarity is the cosine of the angle. Growing both circles lowers the bar for both words at once.
                     The first word inside both circles is the one whose weaker similarity is highest: telephone, at 0.44, the bold number in the table.
                 </aside>
-            </section>
-
-            <section>
-                <h3>Operator 3: Product</h3>
-
-                <p>Find the word with the highest product of similarities.</p>
-                <pre><code class="language-python" data-trim>
-scores = (np.clip(sim_a, 0, None) *
-          np.clip(sim_b, 0, None))
-                </code></pre>
-                <p class="smaller">The biggest rectangle <code>s_a × s_b</code> wins, so one low similarity hurts.</p>
-                <label class="viz-slider-label">Top <output class="viz-topn-out"></output>
-                    <input type="range" class="viz-topn" min="1" max="10" value="1"></label>
-                <div class="viz-row">
-                <svg class="viz-product" role="img" aria-label="Every word plotted by its similarity to earring and to modem, with each top word's s_a by s_b rectangle"></svg>
-                <table class="viz-sums" data-op="product"></table>
-                </div>
             </section>
 
             <section>

@@ -508,7 +508,7 @@
       update();
     }
     for (const table of document.querySelectorAll(".viz-compare")) {
-      renderComparison(table, ["centroid", "maximin", "product", "textual"], 5);
+      renderComparison(table, ["centroid", "product", "maximin", "textual"], 5);
     }
 
     const three = await loadThree();
