@@ -12,3 +12,6 @@ services:
       path: Dockerfile
       # Build in Azure Container Registry: no local Docker needed, and no ARM-to-x86 cross-build on Apple silicon
       remoteBuild: true
+      # Set with `azd env set BASE_IMAGE <image printed by scripts/build_base.sh>`
+      buildArgs:
+        - BASE_IMAGE=${BASE_IMAGE}

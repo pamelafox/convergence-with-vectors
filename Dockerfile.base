@@ -1,0 +1,21 @@
+# Base image with dependencies, model weights, and the embeddings database.
+# Built by scripts/build_base.sh only when its inputs change, since build_db.py takes 10+ minutes.
+FROM python:3.11-slim
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+ENV PYTHONUNBUFFERED=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    HF_HOME=/models \
+    PATH="/app/.venv/bin:$PATH"
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock ./
+RUN uv sync --locked --no-dev
+
+COPY build_db.py embeddings.py operators.py vocab.py ./
+COPY backend/__init__.py backend/db.py backend/
+COPY data/vocab_5000.txt data/
+RUN python build_db.py
